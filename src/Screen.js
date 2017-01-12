@@ -71,6 +71,43 @@ class Navigator {
   }
 
   setButtons(params = {}) {
+
+    console.log("SET BUTTONS", params);
+
+    if (params.leftButtons) {
+
+      params.leftButtons.forEach(leftButton => {
+
+        if (leftButton.render) {
+
+          const generatorWrapper = function() {
+            render() {
+              return leftButton.render();
+            }
+          }
+
+          Navigation.registerSupplementaryComponent(leftButton.id, generatorWrapper)        
+        }
+      };
+    }
+
+    if (params.rightButtons) {
+
+      params.rightButtons.forEach(rightButton => {
+
+        if (rightButton.render) {
+
+          const generatorWrapper = function() {
+            render() {
+              return rightButton.render();
+            }
+          }
+
+          Navigation.registerSupplementaryComponent(rightButton.id, generatorWrapper)        
+        }
+      };
+    }
+
     return platformSpecific.navigatorSetButtons(this, this.navigatorEventID, params);
   }
 
@@ -161,8 +198,10 @@ class Navigator {
 }
 
 export default class Screen extends Component {
+
   static navigatorStyle = {};
   static navigatorButtons = {};
+  static titleRenderFunction = () => {};
 
   constructor(props) {
     super(props);
@@ -175,6 +214,20 @@ export default class Screen extends Component {
     if (this.navigator) {
       this.navigator.cleanup();
       this.navigator = undefined;
+    }
+  }
+}
+
+/**
+ * Wrapper for a render function 
+ */
+class RenderContainer extends Component {
+
+  render() {
+    if (this.props.render) {
+      return this.props.render();
+    } else {
+      return null;
     }
   }
 }

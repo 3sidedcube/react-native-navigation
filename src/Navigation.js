@@ -7,10 +7,18 @@ import Screen from './Screen';
 import PropRegistry from './PropRegistry';
 
 const registeredScreens = {};
+const registeredComponents = {};
 
 function registerScreen(screenID, generator) {
   registeredScreens[screenID] = generator;
   AppRegistry.registerComponent(screenID, generator);
+}
+
+function registerSupplementaryComponent(id, generator) {
+  if (!registeredComponents[id]) {
+    registeredComponents[id] = generator;
+  }
+  AppRegistry.registerComponent(id, generator);
 }
 
 function registerComponent(screenID, generator, store = undefined, Provider = undefined) {
