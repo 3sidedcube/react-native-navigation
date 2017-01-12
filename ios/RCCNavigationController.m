@@ -254,7 +254,17 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
     if (icon) iconImage = [RCTConvert UIImage:icon];
     
     UIBarButtonItem *barButtonItem;
-    if (iconImage)
+    if (button[@"custom"]) {
+      RCTRootView *reactView = [[RCTRootView alloc] initWithBridge:[[RCCManager sharedInstance] getBridge] moduleName:button[@"id"] initialProperties:@{}];
+      if (button[@"size"] && [button[@"size"] isKindOfClass:[NSDictionary class]]) {
+          CGSize buttonSize = [RCTConvert CGSize:button[@"size"]];
+          reactView.frame = CGRectMake(0, 0, buttonSize.width, buttonSize.height);
+      } else {
+          reactView.frame = CGRectMake(0, 0, 40, 22);
+          reactView.clipsToBounds = true;
+      }
+      barButtonItem = [[UIBarButtonItem alloc] initWithCustomView:reactView];
+    } else if (iconImage)
     {
       barButtonItem = [[UIBarButtonItem alloc] initWithImage:iconImage style:UIBarButtonItemStylePlain target:self action:@selector(onButtonPress:)];
     }

@@ -141,6 +141,7 @@ function startSingleScreenApp(params) {
 export default {
   getRegisteredScreen,
   registerComponent,
+  registerSupplementaryComponent,
   showModal: showModal,
   dismissModal: dismissModal,
   dismissAllModals: dismissAllModals,

@@ -47,6 +47,9 @@ function _processButtons(buttons) {
       var unsubscribe = _setListener(onPressId, onPressFunc);
       unsubscribes.push(unsubscribe);
     }
+    if (typeof button.render === "function") {
+      button.custom = true;
+    }
   }
   return function () {
     for (var i = 0 ; i < unsubscribes.length ; i++) {
