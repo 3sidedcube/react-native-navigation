@@ -72,8 +72,6 @@ class Navigator {
 
   setButtons(params = {}) {
 
-    console.log("SET BUTTONS", params);
-
     if (params.leftButtons) {
 
       params.leftButtons.forEach(leftButton => {
@@ -81,14 +79,16 @@ class Navigator {
         if (leftButton.render) {
 
           const generatorWrapper = function() {
-            render() {
-              return leftButton.render();
+            return class extends Component {
+              render() {
+                return leftButton.render();
+              }
             }
           }
 
           Navigation.registerSupplementaryComponent(leftButton.id, generatorWrapper)        
         }
-      };
+      });
     }
 
     if (params.rightButtons) {
@@ -98,14 +98,16 @@ class Navigator {
         if (rightButton.render) {
 
           const generatorWrapper = function() {
-            render() {
-              return rightButton.render();
+            return class extends Component {
+              render() {
+                return rightButton.render();
+              }
             }
           }
 
           Navigation.registerSupplementaryComponent(rightButton.id, generatorWrapper)        
         }
-      };
+      });
     }
 
     return platformSpecific.navigatorSetButtons(this, this.navigatorEventID, params);
