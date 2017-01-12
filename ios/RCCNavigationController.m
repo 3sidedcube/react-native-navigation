@@ -317,15 +317,22 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
                   props:(NSDictionary*)props
                   style:(NSDictionary*)style
 {
-  
-  RCCTitleViewHelper *titleViewHelper = [[RCCTitleViewHelper alloc] init:viewController
-                                                    navigationController:self
-                                                                   title:props[@"title"]
-                                                                subtitle:props[@"subtitle"]
-                                                          titleImageData:props[@"titleImage"]];
-  
-  [titleViewHelper setup:style];
-  
+    
+    if (props[@"componentID"]) {
+        RCTRootView *reactView = [[RCTRootView alloc] initWithBridge:[[RCCManager sharedInstance] getBridge] moduleName:props[@"componentID"] initialProperties:@{}];
+        // Set this wider than it could possibly occupy and it will be constrained by the OS
+        reactView.frame = CGRectMake(0, 0, 4000, 44);
+        reactView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
+        viewController.navigationItem.titleView = reactView;
+    } else {
+        RCCTitleViewHelper *titleViewHelper = [[RCCTitleViewHelper alloc] init:viewController
+                                                          navigationController:self
+                                                                         title:props[@"title"]
+                                                                      subtitle:props[@"subtitle"]
+                                                                titleImageData:props[@"titleImage"]];
+        
+        [titleViewHelper setup:style];
+    }
 }
 
 

@@ -113,6 +113,23 @@ class Navigator {
     return platformSpecific.navigatorSetButtons(this, this.navigatorEventID, params);
   }
 
+  setTitleView(renderFunction = () => {return null;}) {
+
+    const generatorWrapper = function() {
+      return class extends Component {
+        render() {
+          return renderFunction();
+        }
+      }
+    }
+
+    Navigation.registerSupplementaryComponent(this.screenInstanceID+".title", generatorWrapper);
+
+    return platformSpecific.navigatorSetTitleView(this, {
+      componentID: this.screenInstanceID+".title"
+    });
+  }
+
   setTitle(params = {}) {
     return platformSpecific.navigatorSetTitle(this, params);
   }

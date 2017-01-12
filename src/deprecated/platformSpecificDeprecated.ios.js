@@ -297,6 +297,12 @@ function navigatorResetTo(navigator, params) {
   });
 }
 
+function navigatorSetTitleView(navigator, params) {
+  Controllers.NavigationControllerIOS(navigator.navigatorID).setTitle({
+    componentID: params.componentID
+  })
+}
+
 function navigatorSetTitle(navigator, params) {
   Controllers.NavigationControllerIOS(navigator.navigatorID).setTitle({
     title: params.title,
@@ -586,6 +592,7 @@ export default {
   dismissInAppNotification,
   navigatorSetButtons,
   navigatorSetTitle,
+  navigatorSetTitleView,
   navigatorSetStyle,
   navigatorSetTitleImage,
   navigatorToggleDrawer,
