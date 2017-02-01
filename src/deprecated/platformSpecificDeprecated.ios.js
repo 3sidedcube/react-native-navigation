@@ -74,6 +74,7 @@ function startTabBasedApp(params) {
                   <NavigationControllerIOS
                     id={tab.navigationParams.navigatorID}
                     title={tab.title}
+                    subtitle={tab.subtitle}
                     titleImage={tab.titleImage}
                     component={tab.screen}
                     passProps={{
@@ -318,6 +319,10 @@ function navigatorToggleNavBar(navigator, params) {
   });
 }
 
+function navigatorSetStyle(navigator, params) {
+  Controllers.NavigationControllerIOS(navigator.navigatorID).setStyle(params)
+}
+
 function navigatorToggleDrawer(navigator, params) {
   const controllerID = navigator.navigatorID.split('_')[0];
   if (params.to == 'open') {
@@ -443,11 +448,11 @@ function showModal(params) {
 }
 
 function dismissModal(params) {
-  Modal.dismissController(params.animationType);
+  return Modal.dismissController(params.animationType);
 }
 
 function dismissAllModals(params) {
-  Modal.dismissAllControllers(params.animationType);
+  return Modal.dismissAllControllers(params.animationType);
 }
 
 function showLightBox(params) {
@@ -583,6 +588,7 @@ export default {
   dismissInAppNotification,
   navigatorSetButtons,
   navigatorSetTitle,
+  navigatorSetStyle,
   navigatorSetTitleImage,
   navigatorToggleDrawer,
   navigatorToggleTabs,
