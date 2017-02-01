@@ -5,6 +5,7 @@
 #import "RCCTheSideBarManagerViewController.h"
 #import "RCTRootView.h"
 #import "RCCManager.h"
+#import "RCTEventDispatcher.h"
 #import "RCTConvert.h"
 #import "RCCExternalViewControllerProtocol.h"
 
@@ -171,17 +172,46 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
     }
 }
 
+- (void)sendScreenChangedEvent:(NSString *)eventName
+{
+    if ([self.view isKindOfClass:[RCTRootView class]]){
+        
+        RCTRootView *rootView = (RCTRootView *)self.view;
+        
+        if (rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
+            
+            [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:rootView.appProperties[@"navigatorEventID"] body:@
+             {
+                 @"type": @"ScreenChangedEvent",
+                 @"method": eventName
+             }];
+        }
+    }
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    [self sendScreenChangedEvent:@"didAppear"];
+}
+
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    
+    [self sendScreenChangedEvent:@"willAppear"];
     [self setStyleOnAppear];
+}
+
+- (void)viewDidDisappear:(BOOL)animated
+{
+    [super viewDidDisappear:animated];
+    [self sendScreenChangedEvent:@"didDisappear"];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
     [super viewWillDisappear:animated];
-    
+    [self sendScreenChangedEvent:@"willDisappear"];
     [self setStyleOnDisappear];
 }
 
