@@ -605,6 +605,10 @@ function dismissContextualMenu() {
   newPlatformSpecific.dismissContextualMenu();
 }
 
+function launchEmailClient() {
+  newPlatformSpecific.launchEmailClient();
+}
+
 export default {
   startTabBasedApp,
   startSingleScreenApp,
@@ -628,5 +632,6 @@ export default {
   showSnackbar,
   dismissSnackbar,
   showContextualMenu,
-  dismissContextualMenu
+  dismissContextualMenu,
+  launchEmailClient
 };

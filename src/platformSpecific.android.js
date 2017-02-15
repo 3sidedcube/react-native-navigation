@@ -144,6 +144,10 @@ function dismissContextualMenu(screenInstanceID) {
   NativeReactModule.dismissContextualMenu(screenInstanceID);
 }
 
+function launchEmailClient() {
+  NativeReactModule.launchEmailClient();
+}
+
 module.exports = {
   startApp,
   push,
@@ -169,5 +173,6 @@ module.exports = {
   showSnackbar,
   dismissSnackbar,
   showContextualMenu,
-  dismissContextualMenu
+  dismissContextualMenu,
+  launchEmailClient
 };
