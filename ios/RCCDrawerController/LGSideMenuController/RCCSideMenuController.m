@@ -54,9 +54,63 @@
     return self;
 }
 
-- (void)performAction:(NSString *)performAction actionParams:(NSDictionary *)actionParams bridge:(RCTBridge *)bridge
-{
+- (void)performAction:(NSString *)performAction actionParams:(NSDictionary *)actionParams bridge:(RCTBridge *)bridge {
+    LGSideMenuSide side = LGSideMenuSideLeft;
     
+    if ([actionParams[@"side"] isEqualToString:@"right"]) side = LGSideMenuSideRight;
+    
+    //open
+    if ([performAction isEqualToString:@"open"]) {
+        
+        if (side == LGSideMenuSideLeft) {
+            [self showLeftView:nil];
+        } else {
+            [self showRightView:nil];
+        }
+        return;
+    }
+    
+    // close
+    if ([performAction isEqualToString:@"close"]) {
+        
+        if (side == LGSideMenuSideLeft) {
+            [self hideLeftView:nil];
+        } else {
+            [self hideRightView:nil];
+        }
+        return;
+    }
+    
+    //toggle
+    if ([performAction isEqualToString:@"toggle"]) {
+        [self setStyle:side];
+        
+        if (side == LGSideMenuSideLeft) {
+            if (!self.leftViewHidden) {
+                [self showLeftView:nil];
+            } else {
+                [self hideLeftView:nil];
+            }
+        } else {
+            if (!self.rightViewHidden) {
+                [self showRightView:nil];
+            } else {
+                [self hideRightView:nil];
+            }
+        }
+        return;
+    }
+    
+    // setStyle
+    if ([performAction isEqualToString:@"setStyle"])
+    {
+        if (actionParams[@"animationType"]) {
+            NSString *animationTypeString = actionParams[@"animationType"];
+            
+            [self setAnimationType:animationTypeString];
+        }
+        return;
+    }
 }
 
 -(void)setStyle {
