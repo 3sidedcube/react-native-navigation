@@ -6,6 +6,7 @@
 #import "RCCDrawerController.h"
 #import "RCCLightBox.h"
 #import "RCCTabBarController.h"
+#import "LGSideMenuController.h"
 #import "RCCTheSideBarManagerViewController.h"
 #import "RCCNotification.h"
 
@@ -285,7 +286,7 @@ RCT_EXPORT_METHOD(
     if (!controllerId || !performAction) return;
     
     id<RCCDrawerDelegate> controller = [[RCCManager sharedIntance] getControllerWithId:controllerId componentType:@"DrawerControllerIOS"];
-    if (!controller || (![controller isKindOfClass:[RCCDrawerController class]] && ![controller isKindOfClass:[RCCTheSideBarManagerViewController class]])) return;
+    if (!controller || (![controller isKindOfClass:[RCCDrawerController class]] && ![controller isKindOfClass:[RCCTheSideBarManagerViewController class]]) && ![controller isKindOfClass:[LGSideMenuController class]]) return;
     return [controller performAction:performAction actionParams:actionParams bridge:[[RCCManager sharedIntance] getBridge]];
     
 }

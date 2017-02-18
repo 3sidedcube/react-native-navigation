@@ -9,6 +9,11 @@
 /* Begin PBXBuildFile section */
 		260804DB1CE0D9D20094DBA1 /* RCCToolBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 260804DA1CE0D9D20094DBA1 /* RCCToolBar.m */; };
 		26AFF3F51D7EEE2400CBA211 /* RCCTitleViewHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 26AFF3F41D7EEE2400CBA211 /* RCCTitleViewHelper.m */; };
+		B125276F1E58859F00DB2A60 /* LGSideMenuController.m in Sources */ = {isa = PBXBuildFile; fileRef = B12527681E58859F00DB2A60 /* LGSideMenuController.m */; };
+		B12527701E58859F00DB2A60 /* LGSideMenuControllerGesturesHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = B125276A1E58859F00DB2A60 /* LGSideMenuControllerGesturesHandler.m */; };
+		B12527711E58859F00DB2A60 /* LGSideMenuView.m in Sources */ = {isa = PBXBuildFile; fileRef = B125276C1E58859F00DB2A60 /* LGSideMenuView.m */; };
+		B12527721E58859F00DB2A60 /* UIViewController+LGSideMenuController.m in Sources */ = {isa = PBXBuildFile; fileRef = B125276E1E58859F00DB2A60 /* UIViewController+LGSideMenuController.m */; };
+		B12527761E5886FA00DB2A60 /* RCCSideMenuController.m in Sources */ = {isa = PBXBuildFile; fileRef = B12527751E5886FA00DB2A60 /* RCCSideMenuController.m */; };
 		B148B17D1E49DE4C0064174B /* RCTBridge+Reload.m in Sources */ = {isa = PBXBuildFile; fileRef = B148B17C1E49DE4C0064174B /* RCTBridge+Reload.m */; };
 		CC84A19E1C1A0C4E00B3A6A2 /* RCCManager.m in Sources */ = {isa = PBXBuildFile; fileRef = CC84A1941C1A0C4E00B3A6A2 /* RCCManager.m */; };
 		CC84A19F1C1A0C4E00B3A6A2 /* RCCManagerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = CC84A1961C1A0C4E00B3A6A2 /* RCCManagerModule.m */; };
@@ -53,6 +58,16 @@
 		260804DA1CE0D9D20094DBA1 /* RCCToolBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RCCToolBar.m; sourceTree = "<group>"; };
 		26AFF3F31D7EEE2400CBA211 /* RCCTitleViewHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCCTitleViewHelper.h; sourceTree = "<group>"; };
 		26AFF3F41D7EEE2400CBA211 /* RCCTitleViewHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RCCTitleViewHelper.m; sourceTree = "<group>"; };
+		B12527671E58859F00DB2A60 /* LGSideMenuController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LGSideMenuController.h; sourceTree = "<group>"; };
+		B12527681E58859F00DB2A60 /* LGSideMenuController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LGSideMenuController.m; sourceTree = "<group>"; };
+		B12527691E58859F00DB2A60 /* LGSideMenuControllerGesturesHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LGSideMenuControllerGesturesHandler.h; sourceTree = "<group>"; };
+		B125276A1E58859F00DB2A60 /* LGSideMenuControllerGesturesHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LGSideMenuControllerGesturesHandler.m; sourceTree = "<group>"; };
+		B125276B1E58859F00DB2A60 /* LGSideMenuView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LGSideMenuView.h; sourceTree = "<group>"; };
+		B125276C1E58859F00DB2A60 /* LGSideMenuView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LGSideMenuView.m; sourceTree = "<group>"; };
+		B125276D1E58859F00DB2A60 /* UIViewController+LGSideMenuController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIViewController+LGSideMenuController.h"; sourceTree = "<group>"; };
+		B125276E1E58859F00DB2A60 /* UIViewController+LGSideMenuController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIViewController+LGSideMenuController.m"; sourceTree = "<group>"; };
+		B12527741E5886FA00DB2A60 /* RCCSideMenuController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RCCSideMenuController.h; path = LGSideMenuController/RCCSideMenuController.h; sourceTree = "<group>"; };
+		B12527751E5886FA00DB2A60 /* RCCSideMenuController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RCCSideMenuController.m; path = LGSideMenuController/RCCSideMenuController.m; sourceTree = "<group>"; };
 		B148B17B1E49DE4C0064174B /* RCTBridge+Reload.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "RCTBridge+Reload.h"; sourceTree = "<group>"; };
 		B148B17C1E49DE4C0064174B /* RCTBridge+Reload.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RCTBridge+Reload.m"; sourceTree = "<group>"; };
 		CC84A1931C1A0C4E00B3A6A2 /* RCCManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCCManager.h; sourceTree = "<group>"; };
@@ -129,9 +144,25 @@
 			path = RCCToolBar;
 			sourceTree = "<group>";
 		};
+		B12527731E5885A400DB2A60 /* LGSideMenuController */ = {
+			isa = PBXGroup;
+			children = (
+				B12527671E58859F00DB2A60 /* LGSideMenuController.h */,
+				B12527681E58859F00DB2A60 /* LGSideMenuController.m */,
+				B12527691E58859F00DB2A60 /* LGSideMenuControllerGesturesHandler.h */,
+				B125276A1E58859F00DB2A60 /* LGSideMenuControllerGesturesHandler.m */,
+				B125276B1E58859F00DB2A60 /* LGSideMenuView.h */,
+				B125276C1E58859F00DB2A60 /* LGSideMenuView.m */,
+				B125276D1E58859F00DB2A60 /* UIViewController+LGSideMenuController.h */,
+				B125276E1E58859F00DB2A60 /* UIViewController+LGSideMenuController.m */,
+			);
+			name = LGSideMenuController;
+			sourceTree = "<group>";
+		};
 		D85082BB1CBCF42400FDB961 /* RCCDrawerController */ = {
 			isa = PBXGroup;
 			children = (
+				B12527731E5885A400DB2A60 /* LGSideMenuController */,
 				D85082CF1CBCF54200FDB961 /* TheSidebarController */,
 				D85082BC1CBCF42400FDB961 /* MMDrawerController */,
 				D85082CA1CBCF54200FDB961 /* RCCDrawerHelper.h */,
@@ -139,6 +170,8 @@
 				D85082CC1CBCF54200FDB961 /* RCCDrawerProtocol.h */,
 				D85082CD1CBCF54200FDB961 /* RCCTheSideBarManagerViewController.h */,
 				D85082CE1CBCF54200FDB961 /* RCCTheSideBarManagerViewController.m */,
+				B12527741E5886FA00DB2A60 /* RCCSideMenuController.h */,
+				B12527751E5886FA00DB2A60 /* RCCSideMenuController.m */,
 				D85082C81CBCF42400FDB961 /* RCCDrawerController.h */,
 				D8E11C561CBD1F670018B644 /* RCCDrawerController.m */,
 			);
@@ -304,8 +337,11 @@
 				D8D779981D04B7180050CFEA /* RCTHelpers.m in Sources */,
 				B148B17D1E49DE4C0064174B /* RCTBridge+Reload.m in Sources */,
 				D85082E81CBCF54200FDB961 /* SidebarLuvocracyAnimation.m in Sources */,
+				B12527761E5886FA00DB2A60 /* RCCSideMenuController.m in Sources */,
 				D85082E31CBCF54200FDB961 /* SidebarAirbnbAnimation.m in Sources */,
 				D84813191C8C5EB700051BAF /* RCCLightBox.m in Sources */,
+				B125276F1E58859F00DB2A60 /* LGSideMenuController.m in Sources */,
+				B12527701E58859F00DB2A60 /* LGSideMenuControllerGesturesHandler.m in Sources */,
 				CC84A19E1C1A0C4E00B3A6A2 /* RCCManager.m in Sources */,
 				D85082E21CBCF54200FDB961 /* RCCTheSideBarManagerViewController.m in Sources */,
 				D85082FC1CBCF8A800FDB961 /* MMDrawerBarButtonItem.m in Sources */,
@@ -320,9 +356,11 @@
 				D85082E11CBCF54200FDB961 /* RCCDrawerHelper.m in Sources */,
 				D85082FE1CBCF8A800FDB961 /* MMDrawerVisualState.m in Sources */,
 				D85082FD1CBCF8A800FDB961 /* MMDrawerController.m in Sources */,
+				B12527721E58859F00DB2A60 /* UIViewController+LGSideMenuController.m in Sources */,
 				D85082E41CBCF54200FDB961 /* SidebarAnimation.m in Sources */,
 				D8E11C571CBD1F670018B644 /* RCCDrawerController.m in Sources */,
 				260804DB1CE0D9D20094DBA1 /* RCCToolBar.m in Sources */,
+				B12527711E58859F00DB2A60 /* LGSideMenuView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

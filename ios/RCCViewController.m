@@ -3,6 +3,7 @@
 #import "RCCTabBarController.h"
 #import "RCCDrawerController.h"
 #import "RCCTheSideBarManagerViewController.h"
+#import "RCCSideMenuController.h"
 #import "RCCManager.h"
 #import "RCCExternalViewControllerProtocol.h"
 #import "RCTHelpers.h"
@@ -103,6 +104,10 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
         if ([drawerType isEqualToString:@"TheSideBar"]) {
             
             controller = [[RCCTheSideBarManagerViewController alloc] initWithProps:props children:children globalProps:globalProps bridge:bridge];
+        }
+        else if ([drawerType isEqualToString:@"LGSideMenu"]) {
+          
+          controller = [[RCCSideMenuController alloc] initWithProps:props children:children globalProps:globalProps bridge:bridge];
         }
         else {
             controller = [[RCCDrawerController alloc] initWithProps:props children:children globalProps:globalProps bridge:bridge];

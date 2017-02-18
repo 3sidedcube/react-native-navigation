@@ -74,6 +74,13 @@ function _validateDrawerProps(layout) {
         }
       })
     }
+    else if (drawerProps.type === "LGSideMenu") {
+      [Constants.LGSIDEMENU_SLIDE_ABOVE, Constants.LGSIDEMENU_SLIDE_BELOW, Constants.LGSIDEMENU_SCALE_FROM_BIG, Constants.LGSIDEMENU_SCALE_FROM_LITTLE].forEach(function(type) {
+        if (type === drawerProps.animationType){
+          shouldSetToDefault = false;
+        }
+      })
+    }
 
     if (shouldSetToDefault) {
       console.warn("Set to default type=MMDrawer animationType=slide");
