@@ -1,10 +1,24 @@
 #import "RCCNavigationController.h"
 #import "RCCViewController.h"
 #import "RCCManager.h"
-#import "RCTEventDispatcher.h"
-#import "RCTConvert.h"
 #import <objc/runtime.h>
 #import "RCCTitleViewHelper.h"
+
+#if __has_include(<React/RCTEventDispatcher.h>)
+#import <React/RCTEventDispatcher.h>
+#elif __has_include("RCTEventDispatcher.h")
+#import "RCTEventDispatcher.h"
+#elif __has_include("React/RCTEventDispatcher.h")
+#import "React/RCTEventDispatcher.h"   // Required when used as a Pod in a Swift project
+#endif
+
+#if __has_include(<React/RCTConvert.h>)
+#import <React/RCTConvert.h>
+#elif __has_include("RCTConvert.h")
+#import "RCTConvert.h"
+#elif __has_include("React/RCTConvert.h")
+#import "React/RCTConvert.h"   // Required when used as a Pod in a Swift project
+#endif
 
 @implementation RCCNavigationController
 
@@ -36,6 +50,7 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
   
   self = [super initWithRootViewController:viewController];
   if (!self) return nil;
+  self.delegate = self;
   
   self.navigationBar.translucent = NO; // default
   
@@ -77,6 +92,7 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
       [mergedStyle removeObjectForKey:@"navBarTranslucent"];
       [mergedStyle removeObjectForKey:@"statusBarHideWithNavBar"];
       [mergedStyle removeObjectForKey:@"autoAdjustScrollViewInsets"];
+      [mergedStyle removeObjectForKey:@"statusBarTextColorSchemeSingleScreen"];
       
       [mergedStyle addEntriesFromDictionary:navigatorStyle];
       navigatorStyle = mergedStyle;
@@ -335,5 +351,25 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
     }
 }
 
+- (UIStatusBarStyle)preferredStatusBarStyle {
+  if (self.presentedViewController && self.presentedViewController.isBeingDismissed) {
+    return [self.topViewController preferredStatusBarStyle];
+  } else {
+    return [self.visibleViewController preferredStatusBarStyle];
+  }
+}
 
+
+#pragma mark - UINavigationControllerDelegate
+
+
+-(void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated {
+  [viewController setNeedsStatusBarAppearanceUpdate];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+  [super viewWillAppear:animated];
+  [self setNeedsStatusBarAppearanceUpdate];
+}
 @end

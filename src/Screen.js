@@ -8,8 +8,6 @@ import {
 import platformSpecific from './deprecated/platformSpecificDeprecated';
 import Navigation from './Navigation';
 
-const _allNavigatorEventHandlers = {};
-
 const NavigationSpecific = {
   push: platformSpecific.navigatorPush,
   pop: platformSpecific.navigatorPop,
@@ -174,6 +172,10 @@ class Navigator {
     return platformSpecific.showSnackbar(this, params);
   }
 
+  dismissSnackbar() {
+    return platformSpecific.dismissSnackbar();
+  }
+
   showContextualMenu(params, onButtonPressed) {
     return platformSpecific.showContextualMenu(this, params, onButtonPressed);
   }
@@ -187,19 +189,12 @@ class Navigator {
     if (!this.navigatorEventSubscription) {
       let Emitter = Platform.OS === 'android' ? DeviceEventEmitter : NativeAppEventEmitter;
       this.navigatorEventSubscription = Emitter.addListener(this.navigatorEventID, (event) => this.onNavigatorEvent(event));
-      _allNavigatorEventHandlers[this.navigatorEventID] = (event) => this.onNavigatorEvent(event);
+      Navigation.setEventHandler(this.navigatorEventID, (event) => this.onNavigatorEvent(event));
     }
   }
 
   handleDeepLink(params = {}) {
-    if (!params.link) return;
-    const event = {
-      type: 'DeepLink',
-      link: params.link
-    };
-    for (let i in _allNavigatorEventHandlers) {
-      _allNavigatorEventHandlers[i](event);
-    }
+    Navigation.handleDeepLink(params);
   }
 
   onNavigatorEvent(event) {
@@ -211,7 +206,7 @@ class Navigator {
   cleanup() {
     if (this.navigatorEventSubscription) {
       this.navigatorEventSubscription.remove();
-      delete _allNavigatorEventHandlers[this.navigatorEventID];
+      Navigation.clearEventHandler(this.navigatorEventID);
     }
   }
 }
