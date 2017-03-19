@@ -343,6 +343,10 @@ function navigatorToggleDrawer(navigator, params) {
   }
 }
 
+function navigatorToggleDrawerGesture(navigator, params) {
+  
+}
+
 function navigatorToggleNavBar(navigator, params) {
   const screenInstanceID = navigator.screenInstanceID;
   const visible = params.to === 'shown';
@@ -627,6 +631,7 @@ export default {
   navigatorSetSubtitle,
   navigatorSwitchToTab,
   navigatorToggleDrawer,
+  navigatorToggleDrawerGesture,
   navigatorToggleTabs,
   navigatorToggleNavBar,
   showSnackbar,

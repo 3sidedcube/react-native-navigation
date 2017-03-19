@@ -96,6 +96,10 @@ class Navigator {
     return platformSpecific.navigatorToggleDrawer(this, params);
   }
 
+  toggleDrawerGesture(params = {}) {
+    return platformSpecific.navigatorToggleDrawerGesture(this, params);
+  }
+
   toggleTabs(params = {}) {
     return platformSpecific.navigatorToggleTabs(this, params);
   }

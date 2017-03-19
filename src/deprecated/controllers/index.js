@@ -234,6 +234,9 @@ var Controllers = {
       toggle: function (params) {
         return RCCManager.DrawerControllerIOS(id, "toggle", params);
       },
+      toggleGestureEnabled: function (params) {
+        return RCCManager.DrawerControllerIOS(id, 'toggleGestureEnabled', params);
+      },
       setStyle: function (params) {
         return RCCManager.DrawerControllerIOS(id, "setStyle", params);
       }

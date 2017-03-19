@@ -63,9 +63,9 @@
     if ([performAction isEqualToString:@"open"]) {
         
         if (side == LGSideMenuSideLeft) {
-            [self showLeftView:nil];
+            [self showLeftViewAnimated:nil];
         } else {
-            [self showRightView:nil];
+            [self showRightViewAnimated:nil];
         }
         return;
     }
@@ -74,9 +74,9 @@
     if ([performAction isEqualToString:@"close"]) {
         
         if (side == LGSideMenuSideLeft) {
-            [self hideLeftView:nil];
+            [self hideLeftViewAnimated:nil];
         } else {
-            [self hideRightView:nil];
+            [self hideRightViewAnimated:nil];
         }
         return;
     }
@@ -86,16 +86,16 @@
         [self setStyle:side];
         
         if (side == LGSideMenuSideLeft) {
-            if (!self.leftViewHidden) {
-                [self showLeftView:nil];
+            if (self.leftViewHidden) {
+                [self showLeftViewAnimated:nil];
             } else {
-                [self hideLeftView:nil];
+                [self hideLeftViewAnimated:nil];
             }
         } else {
-            if (!self.rightViewHidden) {
-                [self showRightView:nil];
+            if (self.rightViewHidden) {
+                [self showRightViewAnimated:nil];
             } else {
-                [self hideRightView:nil];
+                [self hideRightViewAnimated:nil];
             }
         }
         return;
@@ -110,6 +110,27 @@
             [self setAnimationType:animationTypeString];
         }
         return;
+    }
+    
+    // Toggle drawer gesture
+    if ([performAction isEqualToString:@"toggleGestureEnabled"]) {
+        
+        if ([actionParams objectForKey:@"enabled"] && [[actionParams objectForKey:@"enabled"] isKindOfClass:[NSNumber class]]) {
+            
+            BOOL enabled = [[actionParams objectForKey:@"enabled"] boolValue];
+            if (side == LGSideMenuSideLeft) {
+                [self setLeftViewSwipeGestureEnabled:enabled];
+            } else {
+                [self setRightViewSwipeGestureEnabled:enabled];
+            }
+        } else {
+            
+            if (side == LGSideMenuSideLeft) {
+                [self setLeftViewSwipeGestureEnabled:!self.leftViewSwipeGestureEnabled];
+            } else {
+                [self setRightViewSwipeGestureEnabled:!self.rightViewSwipeGestureEnabled];
+            }
+        }
     }
 }
 
