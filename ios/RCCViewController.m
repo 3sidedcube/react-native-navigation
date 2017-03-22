@@ -8,7 +8,6 @@
 #import <React/RCTConvert.h>
 #import <React/RCTEventDispatcher.h>
 #import "RCCExternalViewControllerProtocol.h"
-#import "RCTBridge+Reload.h"
 #import "RCTHelpers.h"
 #import "RCCTitleViewHelper.h"
 
@@ -198,29 +197,6 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
 {
   [super viewDidAppear:animated];
   [self sendScreenChangedEvent:@"didAppear"];
-}
-
-- (void)sendScreenChangedEvent:(NSString *)eventName
-{
-    if ([self.view isKindOfClass:[RCTRootView class]]){
-        
-        RCTRootView *rootView = (RCTRootView *)self.view;
-        
-        if (rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
-            
-            [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:rootView.appProperties[@"navigatorEventID"] body:@
-             {
-                 @"type": @"ScreenChangedEvent",
-                 @"method": eventName
-             }];
-        }
-    }
-}
-
-- (void)viewDidAppear:(BOOL)animated
-{
-    [super viewDidAppear:animated];
-    [self sendScreenChangedEvent:@"didAppear"];
 }
 
 - (void)viewWillAppear:(BOOL)animated
