@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 
 import com.facebook.react.bridge.Callback;
@@ -373,9 +374,18 @@ public class NavigationActivity extends AppCompatActivity implements DefaultHard
     }
 
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        NavigationApplication.instance.getActivityCallbacks().onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (mPermissionListener != null && mPermissionListener.onRequestPermissionsResult(requestCode, permissions, grantResults)) {
-            mPermissionListener = null;
+        try
+        {
+            NavigationApplication.instance.getActivityCallbacks().onRequestPermissionsResult(requestCode, permissions, grantResults);
+            if (mPermissionListener != null && mPermissionListener.onRequestPermissionsResult(requestCode, permissions, grantResults)) {
+                mPermissionListener = null;
+            }
+        }
+        catch (IllegalStateException ex)
+        {
+            // Ignore "IllegalStateException: Tried to use permissions API while not attached to an Activity."
+            // https://github.com/facebook/react-native/issues/10009
+            Log.e("RNN", ex.getMessage(), ex);
         }
     }
 }
