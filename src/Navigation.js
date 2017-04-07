@@ -158,6 +158,10 @@ function handleDeepLink(params = {}) {
   }
 }
 
+function launchEmailClient() {
+  return platformSpecific.launchEmailClient();
+}
+
 export default {
   getRegisteredScreen,
   registerComponent,
@@ -173,5 +177,6 @@ export default {
   startSingleScreenApp: startSingleScreenApp,
   setEventHandler: setEventHandler,
   clearEventHandler: clearEventHandler,
-  handleDeepLink: handleDeepLink
+  handleDeepLink: handleDeepLink,
+  launchEmailClient: launchEmailClient
 };
