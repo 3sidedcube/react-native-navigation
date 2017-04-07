@@ -1,29 +1,22 @@
 #import "RCCNavigationController.h"
 #import "RCCViewController.h"
 #import "RCCManager.h"
+#import <React/RCTEventDispatcher.h>
+#import <React/RCTConvert.h>
 #import <objc/runtime.h>
 #import "RCCTitleViewHelper.h"
-
-#if __has_include(<React/RCTEventDispatcher.h>)
-#import <React/RCTEventDispatcher.h>
-#elif __has_include("RCTEventDispatcher.h")
-#import "RCTEventDispatcher.h"
-#elif __has_include("React/RCTEventDispatcher.h")
-#import "React/RCTEventDispatcher.h"   // Required when used as a Pod in a Swift project
-#endif
-
-#if __has_include(<React/RCTConvert.h>)
-#import <React/RCTConvert.h>
-#elif __has_include("RCTConvert.h")
-#import "RCTConvert.h"
-#elif __has_include("React/RCTConvert.h")
-#import "React/RCTConvert.h"   // Required when used as a Pod in a Swift project
-#endif
+#import "UIViewController+Rotation.h"
+#import "RCTHelpers.h"
 
 @implementation RCCNavigationController
 
-NSString const *CALLBACK_ASSOCIATED_KEY = @"RCCNavigationController.CALLBACK_ASSOCIATED_KEY";
-NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSOCIATED_ID";
+NSString *const NAVIGATION_ITEM_CALLBACK_ID_ASSOCIATED_KEY = @"RCCNavigationController.CALLBACK_ASSOCIATED_KEY";
+NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationController.CALLBACK_ASSOCIATED_ID";
+
+
+-(UIInterfaceOrientationMask)supportedInterfaceOrientations {
+  return [self supportedControllerOrientations];
+}
 
 - (instancetype)initWithProps:(NSDictionary *)props children:(NSArray *)children globalProps:(NSDictionary*)globalProps bridge:(RCTBridge *)bridge
 {
@@ -58,6 +51,9 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
                    props:props
                    style:navigatorStyle];
   
+
+  [self setRotation:props];
+  
   return self;
 }
 
@@ -82,17 +78,46 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
       NSMutableDictionary *mergedStyle = [NSMutableDictionary dictionaryWithDictionary:parent.navigatorStyle];
       
       // there are a few styles that we don't want to remember from our parent (they should be local)
-      [mergedStyle removeObjectForKey:@"navBarHidden"];
-      [mergedStyle removeObjectForKey:@"statusBarHidden"];
-      [mergedStyle removeObjectForKey:@"navBarHideOnScroll"];
-      [mergedStyle removeObjectForKey:@"drawUnderNavBar"];
-      [mergedStyle removeObjectForKey:@"drawUnderTabBar"];
-      [mergedStyle removeObjectForKey:@"statusBarBlur"];
-      [mergedStyle removeObjectForKey:@"navBarBlur"];
-      [mergedStyle removeObjectForKey:@"navBarTranslucent"];
-      [mergedStyle removeObjectForKey:@"statusBarHideWithNavBar"];
-      [mergedStyle removeObjectForKey:@"autoAdjustScrollViewInsets"];
-      [mergedStyle removeObjectForKey:@"statusBarTextColorSchemeSingleScreen"];
+      NSArray <NSString *> *localStyleKeys = @[
+        @"navBarHidden",
+        @"statusBarHidden",
+        @"navBarHideOnScroll",
+        @"drawUnderNavBar",
+        @"drawUnderTabBar",
+        @"statusBarBlur",
+        @"navBarBlur",
+        @"navBarTranslucent",
+        @"statusBarHideWithNavBar",
+        @"autoAdjustScrollViewInsets",
+        @"statusBarTextColorSchemeSingleScreen",
+        @"disabledBackGesture",
+        @"navBarButtonBorderRadius",
+        @"navBarButtonBorderWidth",
+        @"navBarButtonBorderColor",
+        @"navBarButtonBackgroundColor",
+        @"navBarButtonPadding",
+        @"navBarButtonLeftBorderRadius",
+        @"navBarButtonLeftBorderWidth",
+        @"navBarButtonLeftBorderColor",
+        @"navBarButtonLeftPadding",
+        @"navBarButtonLeftBackgroundColor",
+        @"navBarButtonRightBackgroundColor",
+        @"navBarButtonRightBorderRadius",
+        @"navBarButtonRightBorderWidth",
+        @"navBarButtonRightBorderColor",
+        @"navBarButtonRightPadding"
+      ];
+      
+      [localStyleKeys enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        [mergedStyle removeObjectForKey:obj];
+      }];
+      
+      [[RCTHelpers textAttributeKeys] enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        
+        NSString *key = [obj stringByReplacingCharactersInRange:NSMakeRange(0, 1) withString:[obj substringToIndex:1].capitalizedString];
+        [mergedStyle removeObjectForKey:[NSString stringWithFormat:@"navBarButtonLeft%@", key]];
+        [mergedStyle removeObjectForKey:[NSString stringWithFormat:@"navBarButtonRight%@", key]];
+      }];
       
       [mergedStyle addEntriesFromDictionary:navigatorStyle];
       navigatorStyle = mergedStyle;
@@ -249,9 +274,9 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
 
 -(void)onButtonPress:(UIBarButtonItem*)barButtonItem
 {
-  NSString *callbackId = objc_getAssociatedObject(barButtonItem, &CALLBACK_ASSOCIATED_KEY);
+  NSString *callbackId = objc_getAssociatedObject(barButtonItem, &NAVIGATION_ITEM_CALLBACK_ID_ASSOCIATED_KEY);
   if (!callbackId) return;
-  NSString *buttonId = objc_getAssociatedObject(barButtonItem, &CALLBACK_ASSOCIATED_ID);
+  NSString *buttonId = objc_getAssociatedObject(barButtonItem, &NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY);
   [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:callbackId body:@
    {
      @"type": @"NavBarButtonPress",
@@ -269,23 +294,50 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
     id icon = button[@"icon"];
     if (icon) iconImage = [RCTConvert UIImage:icon];
     
+    BOOL showTitleAndIcon = button[@"showAsAction"] && [button[@"showAsAction"] isEqualToString:@"withText"];
+    
     UIBarButtonItem *barButtonItem;
-    if (iconImage)
+    if (iconImage && !showTitleAndIcon)
     {
       barButtonItem = [[UIBarButtonItem alloc] initWithImage:iconImage style:UIBarButtonItemStylePlain target:self action:@selector(onButtonPress:)];
+    }
+    else if (iconImage && showTitleAndIcon && title) {
+      
+      UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+      
+      [button setImage:[iconImage imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+      [button setTitle:title forState:UIControlStateNormal];
+      [button addTarget:self action:@selector(onButtonPress:) forControlEvents:UIControlEventTouchUpInside];
+    
+      barButtonItem = [[UIBarButtonItem alloc] initWithCustomView:button];
     }
     else if (title)
     {
       barButtonItem = [[UIBarButtonItem alloc] initWithTitle:title style:UIBarButtonItemStylePlain target:self action:@selector(onButtonPress:)];
     }
     else continue;
-    objc_setAssociatedObject(barButtonItem, &CALLBACK_ASSOCIATED_KEY, button[@"onPress"], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    
+    [RCTHelpers styleNavigationItem:barButtonItem inViewController:viewController side:side];
+    if (barButtonItem.customView) {
+      [barButtonItem.customView sizeToFit];
+    }
+    
+    if (barButtonItem.customView && [barButtonItem.customView isKindOfClass:[UIButton class]]) {
+      objc_setAssociatedObject(barButtonItem.customView, &NAVIGATION_ITEM_CALLBACK_ID_ASSOCIATED_KEY, button[@"onPress"], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } else {
+      objc_setAssociatedObject(barButtonItem, &NAVIGATION_ITEM_CALLBACK_ID_ASSOCIATED_KEY, button[@"onPress"], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    
     [barButtonItems addObject:barButtonItem];
     
     NSString *buttonId = button[@"id"];
     if (buttonId)
     {
-      objc_setAssociatedObject(barButtonItem, &CALLBACK_ASSOCIATED_ID, buttonId, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+      if (barButtonItem.customView && [barButtonItem.customView isKindOfClass:[UIButton class]]) {
+        objc_setAssociatedObject(barButtonItem.customView, &NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY, buttonId, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+      } else {
+        objc_setAssociatedObject(barButtonItem, &NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY, buttonId, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+      }
     }
     
     NSNumber *disabled = button[@"disabled"];
@@ -296,7 +348,11 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
     
     NSNumber *disableIconTintString = button[@"disableIconTint"];
     BOOL disableIconTint = disableIconTintString ? [disableIconTintString boolValue] : NO;
-    if (disableIconTint) {
+    if (disableIconTint && barButtonItem.customView && [barButtonItem.customView isKindOfClass:[UIButton class]]) {
+      UIButton *button = (UIButton *)barButtonItem.customView;
+      [button setImage:[[button imageForState:UIControlStateNormal] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
+    }
+    else if (disableIconTint) {
       [barButtonItem setImage:[barButtonItem.image imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal]];
     }
     
