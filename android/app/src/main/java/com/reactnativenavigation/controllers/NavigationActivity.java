@@ -378,6 +378,7 @@ public class NavigationActivity extends AppCompatActivity implements DefaultHard
         {
             if (permissions.length == 0)
             {
+                Log.w("RNN", "Ignore onRequestPermissionsResult callback with empty permissions result");
                 return;
             }
 
