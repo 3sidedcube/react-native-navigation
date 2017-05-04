@@ -376,6 +376,8 @@ public class NavigationActivity extends AppCompatActivity implements DefaultHard
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         try
         {
+            // It is possible for permissions.length to be zero indicating cancellation, for instance if requestPermissions was called while another request was
+            // already in progress. When this happens the ReactNative permission callback crashes with an ArrayIndexOutOfBoundsException
             if (permissions.length == 0)
             {
                 Log.w("RNN", "Ignore onRequestPermissionsResult callback with empty permissions result");
