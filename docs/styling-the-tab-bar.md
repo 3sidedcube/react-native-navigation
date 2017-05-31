@@ -18,20 +18,28 @@ Navigation.startTabBasedApp({
   tabBarButtonColor: '#ffff00', // change the color of the tab icons and text (also unselected)
   tabBarSelectedButtonColor: '#ff9900', // change the color of the selected tab icon and text (only selected)
   tabBarBackgroundColor: '#551A8B' // change the background color of the tab bar
+  tabBarTranslucent: false // change the translucent of the tab bar to false
+  tabBarTextFontFamily: 'Avenir-Medium' //change the tab font family
+  tabBarLabelColor: '#ffb700', // iOS only. change the color of tab text
+  tabBarSelectedLabelColor: 'red', // iOS only. change the color of the selected tab text
+  forceTitlesDisplay: true // Android only. If true - Show all bottom tab labels. If false - only the selected tab's label is visible.
+  tabBarHideShadow: true // iOS only. Remove default tab bar top shadow (hairline)
+  forceTitlesDisplay: true // Android only. If true - Show all bottom tab labels. If false - only the selected tab's label is visible.
 }
 ```
 
-> *Note:* On Android, add BottomTabs styles to `AppStyle`:
+?> On Android, add BottomTabs styles to `AppStyle`:
+
 ```js
 Navigation.startTabBasedApp({
   tabs: [...],
   appStyle: {
     tabBarBackgroundColor: '#0f2362',
     tabBarButtonColor: '#ffffff',
-    tabBarSelectedButtonColor: '#63d7cc'
+    tabBarSelectedButtonColor: '#63d7cc',
+    tabBarTranslucent: false,
+    tabFontFamily: 'Avenir-Medium.ttf'  // for asset file or use existing font family name
   },
 ...
 }
 ```
-
-All supported styles are defined [here](https://github.com/wix/react-native-controllers#styling-tab-bar). There's also an example project there showcasing all the different styles.

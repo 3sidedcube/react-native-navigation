@@ -44,6 +44,10 @@ class Navigator {
     return Navigation.showModal(params);
   }
 
+  showLightBox(params = {}) {
+    return Navigation.showLightBox(params);
+  }
+
   dismissModal(params = {}) {
     return Navigation.dismissModal(params);
   }
@@ -85,11 +89,7 @@ class Navigator {
   }
 
   setStyle(params = {}) {
-    if (Platform.OS === 'ios') {
-      return platformSpecific.navigatorSetStyle(this, params);
-    } else {
-      console.log(`Setting style isn\'t supported on ${Platform.OS} yet`);
-    }
+    return platformSpecific.navigatorSetStyle(this, params);
   }
 
   toggleDrawer(params = {}) {
@@ -108,12 +108,20 @@ class Navigator {
     return platformSpecific.navigatorSetTabBadge(this, params);
   }
 
+  setTabButton(params = {}) {
+    return platformSpecific.navigatorSetTabButton(this, params);
+  }
+
   switchToTab(params = {}) {
     return platformSpecific.navigatorSwitchToTab(this, params);
   }
 
+  switchToTopTab(params = {}) {
+    return platformSpecific.navigatorSwitchToTopTab(this, params);
+  }
+
   showSnackbar(params = {}) {
-    return platformSpecific.showSnackbar(this, params);
+    return platformSpecific.showSnackbar(params);
   }
 
   dismissSnackbar() {

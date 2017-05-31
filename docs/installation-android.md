@@ -1,72 +1,84 @@
 # Android Installation
 
-### Important
-The `latest` (stable) version of this framework is `1.x.x` which supports react-native `0.25.1`. It's installation instructions are [here](https://github.com/wix/react-native-navigation/blob/v1.x.x/README.md#installation---android). To use it specify `"react-native-navigation": "latest"` in your package.json dependencies.
+!> Make sure you are using **react-native** version >= 0.43. We also recommend using npm version >= 3
 
-The following instructions are for the `next` version `2.0.0-experimental.x`, which supports react-native `0.37.0`. To use it specify `"react-native-navigation": "next"` in your package.json dependencies. Bear in mind, as the name of the version suggests - this version is experimental and under heavy development, and will break from time to time - thus when using it you should check out these instructions from time to time to avoid breaking your project. 
+1. Install `react-native-navigation` latest stable version.
 
-----
+	```sh
+	yarn add react-native-navigation@latest
+	```
 
-* Make sure you are using react-native version 0.37.0
-
- >Note: Android adaptation is still under active development therfore the API might break from time to time. 
- 
-1.  Add the following to your `settings.gradle` file located in the `android` folder:
+2. Add the following in `android/settings.gradle`.
 
 	```groovy
 	include ':react-native-navigation'
 	project(':react-native-navigation').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-navigation/android/app/')
 	```
-	
-2. Update project dependencies in `build.gradle` under `app` folder.
 
+3. Update project dependencies in `android/app/build.gradle`.
 	```groovy
+	android {
+		compileSdkVersion 25
+		buildToolsVersion "25.0.1"
+		...
+	}
+
 	dependencies {
-	    compile fileTree(dir: "libs", include: ["*.jar"])
-	    compile "com.android.support:appcompat-v7:23.0.1"
-	    compile "com.facebook.react:react-native:+"
-	    compile project(':react-native-navigation')
-}
-```
-
-3. Your `MainActivity` should extend `com.reactnativenavigation.controllers.SplashActivity` instead of `ReactActivity`. If you have any `react-native` related methods in your `MainActivity` you can safely delete them.
-
-4. Update the MainApplication file and update the `Application` element in `AndroidManifest.xml`
-	
-	```java
-	import com.reactnativenavigation.NavigationApplication;
-	
-	public class MainApplication extends NavigationApplication {
-	
+		compile fileTree(dir: "libs", include: ["*.jar"])
+		compile "com.android.support:appcompat-v7:23.0.1"
+		compile "com.facebook.react:react-native:+"
+		compile project(':react-native-navigation')
 	}
 	```
-	
-	```xml
-	<application
-        android:name=".MainApplication"
-        ...
-        />
-	```
-5. Implement `isDebug` and `createAdditionalReactPackages` methods
+
+4. In `MainActivity.java` it should extend `com.reactnativenavigation.controllers.SplashActivity` instead of `ReactActivity`.
+
+	This file can be located in `android/app/src/main/java/com/yourproject/`.
 
 	```java
+	import com.reactnativenavigation.controllers.SplashActivity;
+
+	public class MainActivity extends SplashActivity {
+
+	}
+	```
+
+	If you have any **react-native** related methods, you can safely delete them.
+
+5. In `MainApplication.java`, add the following
+	```java
 	import com.reactnativenavigation.NavigationApplication;
-	
-	public class MyApplication extends NavigationApplication {
- 
-    	@Override
+
+	public class MainApplication extends NavigationApplication {
+
+		@Override
 		public boolean isDebug() {
 			// Make sure you are using BuildConfig from your own application
 			return BuildConfig.DEBUG;
 		}
 
-	    @NonNull
-	    @Override
-	    public List<ReactPackage> createAdditionalReactPackages() {
-		    // Add the packages you require here.
+		protected List<ReactPackage> getPackages() {
+			// Add additional packages you require here
 			// No need to add RnnPackage and MainReactPackage
-	        return null;
-	    }
+			return Arrays.<ReactPackage>asList(
+				// eg. new VectorIconsPackage()
+			);
+		}
+
+		@Override
+		public List<ReactPackage> createAdditionalReactPackages() {
+			return getPackages();
+		}
 	}
 	```
-6. Run react-native start
+
+	Make sure that `isDebug` and `createAdditionalReactPackages` methods are implemented.
+
+6. Update `AndroidManifest.xml` and set **android:name** value to `.MainApplication`
+	```xml
+	<application
+		android:name=".MainApplication"
+		...
+	/>
+	```
+
