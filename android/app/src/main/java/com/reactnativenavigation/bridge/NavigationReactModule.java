@@ -53,8 +53,6 @@ public class NavigationReactModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startApp(final ReadableMap params) {
-        boolean portraitOnlyMode = false;
-        boolean landscapeOnlyMode = false;
         NavigationCommandsHandler.startApp(BundleConverter.toBundle(params));
     }
 
@@ -100,6 +98,11 @@ public class NavigationReactModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void setScreenStyle(String screenInstanceId, ReadableMap style) {
+        NavigationCommandsHandler.setScreenStyle(screenInstanceId, BundleConverter.toBundle(style));
+    }
+
+    @ReactMethod
     public void setBottomTabBadgeByIndex(Integer index, String badge) {
         NavigationCommandsHandler.setBottomTabBadgeByIndex(index, badge);
     }
@@ -110,6 +113,16 @@ public class NavigationReactModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void setBottomTabButtonByIndex(Integer index, final ReadableMap params) {
+        NavigationCommandsHandler.setBottomTabButtonByIndex(index, BundleConverter.toBundle(params));
+    }
+
+    @ReactMethod
+    public void setBottomTabButtonByNavigatorId(String navigatorId, final ReadableMap params) {
+        NavigationCommandsHandler.setBottomTabButtonByNavigatorId(navigatorId, BundleConverter.toBundle(params));
+    }
+
+    @ReactMethod
     public void selectBottomTabByTabIndex(Integer index) {
         NavigationCommandsHandler.selectBottomTabByTabIndex(index);
     }
@@ -117,6 +130,16 @@ public class NavigationReactModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void selectBottomTabByNavigatorId(String navigatorId) {
         NavigationCommandsHandler.selectBottomTabByNavigatorId(navigatorId);
+    }
+
+    @ReactMethod
+    public void selectTopTabByTabIndex(String screenInstanceId, int index) {
+        NavigationCommandsHandler.selectTopTabByTabIndex(screenInstanceId, index);
+    }
+
+    @ReactMethod
+    public void selectTopTabByScreen(String screenInstanceId) {
+        NavigationCommandsHandler.selectTopTabByScreen(screenInstanceId);
     }
 
     @ReactMethod
