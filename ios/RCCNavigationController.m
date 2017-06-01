@@ -92,6 +92,8 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
         @"drawUnderTabBar",
         @"statusBarBlur",
         @"navBarBlur",
+        @"navBarCustomView",
+        @"navBarComponentAlignment",
         @"navBarTranslucent",
         @"statusBarHideWithNavBar",
         @"autoAdjustScrollViewInsets",
