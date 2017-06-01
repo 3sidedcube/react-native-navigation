@@ -92,6 +92,8 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
         @"drawUnderTabBar",
         @"statusBarBlur",
         @"navBarBlur",
+        @"navBarCustomView",
+        @"navBarComponentAlignment",
         @"navBarTranslucent",
         @"statusBarHideWithNavBar",
         @"autoAdjustScrollViewInsets",
@@ -320,6 +322,11 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
     else if (title)
     {
       barButtonItem = [[UIBarButtonItem alloc] initWithTitle:title style:UIBarButtonItemStylePlain target:self action:@selector(onButtonPress:)];
+
+      NSMutableDictionary *buttonTextAttributes = [RCTHelpers textAttributesFromDictionary:button withPrefix:@"button"];
+      if (buttonTextAttributes.allKeys.count > 0) {
+        [barButtonItem setTitleTextAttributes:buttonTextAttributes forState:UIControlStateNormal];
+      }
     }
     else continue;
     
@@ -385,12 +392,13 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
                   props:(NSDictionary*)props
                   style:(NSDictionary*)style
 {
-  
+  BOOL isSetSubtitleBool = props[@"isSetSubtitle"] ? [props[@"isSetSubtitle"] boolValue] : NO;
   RCCTitleViewHelper *titleViewHelper = [[RCCTitleViewHelper alloc] init:viewController
                                                     navigationController:self
                                                                    title:props[@"title"]
                                                                 subtitle:props[@"subtitle"]
-                                                          titleImageData:props[@"titleImage"]];
+                                                          titleImageData:props[@"titleImage"]
+                                                           isSetSubtitle:isSetSubtitleBool];
   
   [titleViewHelper setup:style];
   
