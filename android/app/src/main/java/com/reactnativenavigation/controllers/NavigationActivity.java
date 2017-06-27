@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Window;
 
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
@@ -34,6 +35,7 @@ import com.reactnativenavigation.params.SnackbarParams;
 import com.reactnativenavigation.params.TitleBarButtonParams;
 import com.reactnativenavigation.params.TitleBarLeftButtonParams;
 import com.reactnativenavigation.react.ReactGateway;
+import com.reactnativenavigation.screens.Screen;
 import com.reactnativenavigation.utils.OrientationHelper;
 import com.reactnativenavigation.views.SideMenu.Side;
 
@@ -69,8 +71,8 @@ public class NavigationActivity extends AppCompatActivity implements DefaultHard
         activityParams = NavigationCommandsHandler.parseActivityParams(getIntent());
         disableActivityShowAnimationIfNeeded();
         setOrientation();
-        createLayout();
         createModalController();
+        createLayout();
         NavigationApplication.instance.getActivityCallbacks().onActivityCreated(this, savedInstanceState);
     }
 
@@ -238,15 +240,24 @@ public class NavigationActivity extends AppCompatActivity implements DefaultHard
     }
 
     void showModal(ScreenParams screenParams) {
+        Screen previousScreen = layout.getCurrentScreen();
+        NavigationApplication.instance.getEventEmitter().sendScreenChangedEvent("willDisappear", previousScreen.getNavigatorEventId());
+        NavigationApplication.instance.getEventEmitter().sendScreenChangedEvent("didDisappear", previousScreen.getNavigatorEventId());
         modalController.showModal(screenParams);
     }
 
     void dismissTopModal() {
         modalController.dismissTopModal();
+        Screen previousScreen = layout.getCurrentScreen();
+        NavigationApplication.instance.getEventEmitter().sendScreenChangedEvent("willAppear", previousScreen.getNavigatorEventId());
+        NavigationApplication.instance.getEventEmitter().sendScreenChangedEvent("didAppear", previousScreen.getNavigatorEventId());
     }
 
     void dismissAllModals() {
         modalController.dismissAllModals();
+        Screen previousScreen = layout.getCurrentScreen();
+        NavigationApplication.instance.getEventEmitter().sendScreenChangedEvent("willAppear", previousScreen.getNavigatorEventId());
+        NavigationApplication.instance.getEventEmitter().sendScreenChangedEvent("didAppear", previousScreen.getNavigatorEventId());
     }
 
     public void showLightBox(LightBoxParams params) {
@@ -294,12 +305,27 @@ public class NavigationActivity extends AppCompatActivity implements DefaultHard
         modalController.setFab(screenInstanceId, navigatorEventId, fab);
     }
 
+    public void setScreenStyle(String screenInstanceId, Bundle styleParams) {
+        layout.updateScreenStyle(screenInstanceId, styleParams);
+        modalController.updateScreenStyle(screenInstanceId, styleParams);
+    }
+
     public void toggleSideMenuVisible(boolean animated, Side side) {
         layout.toggleSideMenuVisible(animated, side);
     }
 
     public void setSideMenuVisible(boolean animated, boolean visible, Side side) {
         layout.setSideMenuVisible(animated, visible, side);
+    }
+
+    public void selectTopTabByTabIndex(String screenInstanceId, int index) {
+        layout.selectTopTabByTabIndex(screenInstanceId, index);
+        modalController.selectTopTabByTabIndex(screenInstanceId, index);
+    }
+
+    public void selectTopTabByScreen(String screenInstanceId) {
+        layout.selectTopTabByScreen(screenInstanceId);
+        modalController.selectTopTabByScreen(screenInstanceId);
     }
 
     public void selectBottomTabByTabIndex(Integer index) {
@@ -323,6 +349,18 @@ public class NavigationActivity extends AppCompatActivity implements DefaultHard
     public void setBottomTabBadgeByNavigatorId(String navigatorId, String badge) {
         if (layout instanceof BottomTabsLayout) {
             ((BottomTabsLayout) layout).setBottomTabBadgeByNavigatorId(navigatorId, badge);
+        }
+    }
+
+    public void setBottomTabButtonByIndex(Integer index, ScreenParams params) {
+        if (layout instanceof BottomTabsLayout) {
+            ((BottomTabsLayout) layout).setBottomTabButtonByIndex(index, params);
+        }
+    }
+
+    public void setBottomTabButtonByNavigatorId(String navigatorId, ScreenParams params) {
+        if (layout instanceof BottomTabsLayout) {
+            ((BottomTabsLayout) layout).setBottomTabButtonByNavigatorId(navigatorId, params);
         }
     }
 
@@ -351,13 +389,20 @@ public class NavigationActivity extends AppCompatActivity implements DefaultHard
     }
 
     public void showContextualMenu(String screenInstanceId, ContextualMenuParams params, Callback onButtonClicked) {
-        layout.showContextualMenu(screenInstanceId, params, onButtonClicked);
-        modalController.showContextualMenu(screenInstanceId, params, onButtonClicked);
+        if (modalController.isShowing()) {
+            modalController.showContextualMenu(screenInstanceId, params, onButtonClicked);
+        } else
+        {
+            layout.showContextualMenu(screenInstanceId, params, onButtonClicked);
+        }
     }
 
     public void dismissContextualMenu(String screenInstanceId) {
-        layout.dismissContextualMenu(screenInstanceId);
-        modalController.dismissContextualMenu(screenInstanceId);
+        if (modalController.isShowing()) {
+            modalController.dismissContextualMenu(screenInstanceId);
+        } else {
+            layout.dismissContextualMenu(screenInstanceId);
+        }
     }
 
     @Override
@@ -365,19 +410,29 @@ public class NavigationActivity extends AppCompatActivity implements DefaultHard
         if (event.getType().equals(ModalDismissedEvent.TYPE)) {
             handleModalDismissedEvent();
         } else if (event.getType().equals(JsDevReloadEvent.TYPE)) {
-            handleJsDevReloadEvent();
+            postHandleJsDevReloadEvent();
         }
     }
 
     private void handleModalDismissedEvent() {
         if (!modalController.isShowing()) {
             layout.onModalDismissed();
+            OrientationHelper.setOrientation(this, AppStyle.appStyle.orientation);
         }
     }
 
-    private void handleJsDevReloadEvent() {
-        modalController.destroy();
-        layout.destroy();
+    public Window getScreenWindow() {
+        return modalController.isShowing() ? modalController.getWindow() : getWindow();
+    }
+
+    private void postHandleJsDevReloadEvent() {
+        NavigationApplication.instance.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                layout.destroy();
+                modalController.destroy();
+            }
+        });
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -386,6 +441,7 @@ public class NavigationActivity extends AppCompatActivity implements DefaultHard
         requestPermissions(permissions, requestCode);
     }
 
+    @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         try
         {
