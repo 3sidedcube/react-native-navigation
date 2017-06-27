@@ -51,6 +51,8 @@ public class NavigationActivity extends AppCompatActivity implements DefaultHard
      */
     static NavigationActivity currentActivity;
 
+    static NavigationActivity backgroundActivity;
+
     private ActivityParams activityParams;
     private ModalController modalController;
     private Layout layout;
@@ -103,6 +105,7 @@ public class NavigationActivity extends AppCompatActivity implements DefaultHard
     protected void onStart() {
         super.onStart();
         NavigationApplication.instance.getActivityCallbacks().onActivityStarted(this);
+        backgroundActivity = this;
     }
 
     @Override
@@ -140,6 +143,7 @@ public class NavigationActivity extends AppCompatActivity implements DefaultHard
     @Override
     protected void onStop() {
         super.onStop();
+        backgroundActivity = null;
         NavigationApplication.instance.getActivityCallbacks().onActivityStopped(this);
     }
 
