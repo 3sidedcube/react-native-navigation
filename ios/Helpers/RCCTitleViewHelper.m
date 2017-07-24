@@ -131,7 +131,8 @@ navigationController:(UINavigationController*)navigationController
 -(void)centerTitleView:(CGRect)navigationBarBounds titleLabel:(UILabel*)titleLabel subtitleLabel:(UILabel*)subtitleLabel
 {
     CGRect titleViewFrame = navigationBarBounds;
-    titleViewFrame.size.width = MAX(titleLabel.frame.size.width, subtitleLabel.frame.size.width);;
+    titleViewFrame.size.width = MAX(titleLabel.frame.size.width, subtitleLabel.frame.size.width);
+	titleViewFrame.origin.x = (navigationBarBounds.size.width - titleViewFrame.size.width)/2;
     self.titleView.frame = titleViewFrame;
     
     for (UIView *view in self.titleView.subviews)
