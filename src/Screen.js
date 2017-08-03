@@ -96,6 +96,10 @@ class Navigator {
     return platformSpecific.navigatorToggleDrawer(this, params);
   }
 
+  setDrawerEnabled(params = {}) {
+    return platformSpecific.navigatorSetDrawerEnabled(this, params);
+  }
+
   toggleTabs(params = {}) {
     return platformSpecific.navigatorToggleTabs(this, params);
   }
@@ -160,6 +164,14 @@ class Navigator {
       this.navigatorEventSubscription.remove();
       Navigation.clearEventHandler(this.navigatorEventID);
     }
+  }
+
+  async screenIsCurrentlyVisible() {
+    const res = await Navigation.getCurrentlyVisibleScreenId();
+    if (!res) {
+      return false;
+    }
+    return res.screenId === this.screenInstanceID;
   }
 }
 

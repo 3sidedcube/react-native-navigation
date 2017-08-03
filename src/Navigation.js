@@ -162,8 +162,17 @@ function handleDeepLink(params = {}) {
   }
 }
 
+async function isAppLaunched() {
+  return await platformSpecific.isAppLaunched();
+}
+
+function getCurrentlyVisibleScreenId() {
+  return platformSpecific.getCurrentlyVisibleScreenId();
+}
+
 export default {
   getRegisteredScreen,
+  getCurrentlyVisibleScreenId,
   registerComponent,
   showModal: showModal,
   dismissModal: dismissModal,
@@ -177,5 +186,6 @@ export default {
   startSingleScreenApp: startSingleScreenApp,
   setEventHandler: setEventHandler,
   clearEventHandler: clearEventHandler,
-  handleDeepLink: handleDeepLink
+  handleDeepLink: handleDeepLink,
+  isAppLaunched: isAppLaunched
 };

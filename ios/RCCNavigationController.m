@@ -34,6 +34,7 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
   
   RCCViewController *viewController = [[RCCViewController alloc] initWithComponent:component passProps:passProps navigatorStyle:navigatorStyle globalProps:globalProps bridge:bridge];
   if (!viewController) return nil;
+  viewController.controllerId = props[@"id"];
   
   NSArray *leftButtons = props[@"leftButtons"];
   if (leftButtons)
@@ -74,7 +75,9 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
     NSString *component = actionParams[@"component"];
     if (!component) return;
     
-    NSDictionary *passProps = actionParams[@"passProps"];
+    NSMutableDictionary *passProps = [actionParams[@"passProps"] mutableCopy];
+    passProps[GLOBAL_SCREEN_ACTION_COMMAND_TYPE] = COMMAND_TYPE_PUSH;
+    passProps[GLOBAL_SCREEN_ACTION_TIMESTAMP] = actionParams[GLOBAL_SCREEN_ACTION_TIMESTAMP];
     NSDictionary *navigatorStyle = actionParams[@"style"];
     
     // merge the navigatorStyle of our parent
@@ -132,6 +135,7 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
     }
     
     RCCViewController *viewController = [[RCCViewController alloc] initWithComponent:component passProps:passProps navigatorStyle:navigatorStyle globalProps:nil bridge:bridge];
+    viewController.controllerId = passProps[@"screenInstanceID"];
     
     [self processTitleView:viewController
                      props:actionParams
@@ -171,21 +175,60 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
       [self setButtons:rightButtons viewController:viewController side:@"right" animated:NO];
     }
     
-    [self pushViewController:viewController animated:animated];
+    NSString *animationType = actionParams[@"animationType"];
+    if ([animationType isEqualToString:@"fade"])
+    {
+      CATransition *transition = [CATransition animation];
+      transition.duration = 0.25;
+      transition.type = kCATransitionFade;
+      
+      [self.view.layer addAnimation:transition forKey:kCATransition];
+      [self pushViewController:viewController animated:NO];
+    }
+    else
+    {
+      [self pushViewController:viewController animated:animated];
+    }
     return;
   }
   
   // pop
   if ([performAction isEqualToString:@"pop"])
   {
-    [self popViewControllerAnimated:animated];
+    NSString *animationType = actionParams[@"animationType"];
+    if ([animationType isEqualToString:@"fade"])
+    {
+      CATransition *transition = [CATransition animation];
+      transition.duration = 0.25;
+      transition.type = kCATransitionFade;
+      
+      [self.view.layer addAnimation:transition forKey:kCATransition];
+      [self popViewControllerAnimated:NO];
+    }
+    else
+    {
+      [self popViewControllerAnimated:animated];
+    }
     return;
   }
   
   // popToRoot
   if ([performAction isEqualToString:@"popToRoot"])
   {
-    [self popToRootViewControllerAnimated:animated];
+    NSString *animationType = actionParams[@"animationType"];
+    if ([animationType isEqualToString:@"fade"])
+    {
+      CATransition *transition = [CATransition animation];
+      transition.duration = 0.25;
+      transition.type = kCATransitionFade;
+      
+      [self.view.layer addAnimation:transition forKey:kCATransition];
+      [self popToRootViewControllerAnimated:NO];
+    }
+    else
+    {
+      [self popToRootViewControllerAnimated:animated];
+    }
     return;
   }
   
@@ -195,10 +238,12 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
     NSString *component = actionParams[@"component"];
     if (!component) return;
     
-    NSDictionary *passProps = actionParams[@"passProps"];
+    NSMutableDictionary *passProps = [actionParams[@"passProps"] mutableCopy];
+    passProps[@"commantType"] = @"resetTo";
     NSDictionary *navigatorStyle = actionParams[@"style"];
     
     RCCViewController *viewController = [[RCCViewController alloc] initWithComponent:component passProps:passProps navigatorStyle:navigatorStyle globalProps:nil bridge:bridge];
+    viewController.controllerId = passProps[@"screenInstanceID"];
     
     [self processTitleView:viewController
                      props:actionParams
@@ -217,7 +262,20 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
     
     BOOL animated = actionParams[@"animated"] ? [actionParams[@"animated"] boolValue] : YES;
     
-    [self setViewControllers:@[viewController] animated:animated];
+    NSString *animationType = actionParams[@"animationType"];
+    if ([animationType isEqualToString:@"fade"])
+    {
+      CATransition *transition = [CATransition animation];
+      transition.duration = 0.25;
+      transition.type = kCATransitionFade;
+      
+      [self.view.layer addAnimation:transition forKey:kCATransition];
+      [self setViewControllers:@[viewController] animated:NO];
+    }
+    else
+    {
+      [self setViewControllers:@[viewController] animated:animated];
+    }
     return;
   }
   

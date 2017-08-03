@@ -153,6 +153,11 @@ public class NavigationReactModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void setSideMenuEnabled(boolean enabled, String side) {
+        NavigationCommandsHandler.setSideMenuEnabled(enabled, Side.fromString(side));
+    }
+
+    @ReactMethod
     public void toggleTopBarVisible(final ReadableMap params) {
     }
 
@@ -253,5 +258,15 @@ public class NavigationReactModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void getOrientation(Promise promise) {
         NavigationCommandsHandler.getOrientation(promise);
+    }
+
+    @ReactMethod
+    public void isAppLaunched(Promise promise) {
+        NavigationCommandsHandler.isAppLaunched(promise);
+    }
+
+    @ReactMethod
+    public void getCurrentlyVisibleScreenId(Promise promise) {
+        NavigationCommandsHandler.getCurrentlyVisibleScreenId(promise);
     }
 }

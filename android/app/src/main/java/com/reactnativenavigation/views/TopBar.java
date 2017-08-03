@@ -3,16 +3,23 @@ package com.reactnativenavigation.views;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
+import android.support.v7.app.ActionBar;
+import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.facebook.react.bridge.Callback;
+import com.reactnativenavigation.animation.VisibilityAnimator;
 import com.reactnativenavigation.params.BaseScreenParams;
 import com.reactnativenavigation.params.ContextualMenuParams;
+import com.reactnativenavigation.params.NavigationParams;
 import com.reactnativenavigation.params.StyleParams;
 import com.reactnativenavigation.params.TitleBarButtonParams;
 import com.reactnativenavigation.params.TitleBarLeftButtonParams;
+import com.reactnativenavigation.screens.Screen;
 import com.reactnativenavigation.utils.ViewUtils;
 
 import java.util.List;
@@ -25,11 +32,26 @@ public class TopBar extends AppBarLayout {
     private ContextualMenu contextualMenu;
     protected FrameLayout titleBarAndContextualMenuContainer;
     protected TopTabs topTabs;
+    private VisibilityAnimator visibilityAnimator;
+    @Nullable
+    private ContentView reactView;
 
     public TopBar(Context context) {
         super(context);
         setId(ViewUtils.generateViewId());
+        createTopBarVisibilityAnimator();
         createLayout();
+    }
+
+    private void createTopBarVisibilityAnimator() {
+        ViewUtils.runOnPreDraw(this, new Runnable() {
+            @Override
+            public void run() {
+                visibilityAnimator = new VisibilityAnimator(TopBar.this,
+                        VisibilityAnimator.HideDirection.Up,
+                        getHeight());
+            }
+        });
     }
 
     protected void createLayout() {
@@ -59,12 +81,48 @@ public class TopBar extends AppBarLayout {
         titleBar.setLeftButton(leftButton, leftButtonOnClickListener, navigatorEventId, overrideBackPressInJs);
     }
 
-    public void setTitle(String title) {
-        titleBar.setTitle(title);
+    public void setTitle(String title, StyleParams styleParams) {
+        titleBar.setTitle(title, styleParams);
     }
 
     public void setSubtitle(String subtitle) {
         titleBar.setSubtitle(subtitle);
+    }
+
+    public void setReactView(@NonNull StyleParams styleParams) {
+        if (styleParams.hasTopBarCustomComponent()) {
+            reactView = createReactView(styleParams);
+            if ("fill".equals(styleParams.topBarReactViewAlignment)) {
+                addReactViewFill(reactView);
+            } else {
+                addCenteredReactView(reactView);
+            }
+        }
+    }
+
+    private ContentView createReactView(StyleParams styleParams) {
+        return new ContentView(getContext(),
+                styleParams.topBarReactView,
+                NavigationParams.EMPTY,
+                styleParams.topBarReactViewInitialProps
+        );
+    }
+
+    private void addReactViewFill(ContentView view) {
+        view.setLayoutParams(new LayoutParams(MATCH_PARENT, ViewUtils.getToolBarHeight()));
+        titleBar.addView(view);
+    }
+
+    private void addCenteredReactView(final ContentView view) {
+        titleBar.addView(view, new LayoutParams(WRAP_CONTENT, ViewUtils.getToolBarHeight()));
+        view.setOnDisplayListener(new Screen.OnDisplayListener() {
+            @Override
+            public void onDisplay() {
+                view.getLayoutParams().width = (int) (float) view.getChildAt(0).getMeasuredWidth();
+                ((ActionBar.LayoutParams) view.getLayoutParams()).gravity = Gravity.CENTER;
+                view.requestLayout();
+            }
+        });
     }
 
     public void setButtonColor(StyleParams styleParams) {
@@ -79,6 +137,7 @@ public class TopBar extends AppBarLayout {
             setTransparent();
         }
         titleBar.setStyle(styleParams);
+        setReactView(styleParams);
         setTopTabsStyle(styleParams);
         if (!styleParams.topBarElevationShadowEnabled) {
             disableElevationShadow();
@@ -135,7 +194,7 @@ public class TopBar extends AppBarLayout {
                     @Override
                     public void run() {
                         if (menuToRemove != null) {
-                           titleBarAndContextualMenuContainer.removeView(menuToRemove);
+                            titleBarAndContextualMenuContainer.removeView(menuToRemove);
                         }
                     }
                 });
@@ -157,10 +216,17 @@ public class TopBar extends AppBarLayout {
     }
 
     public void destroy() {
-
+        if (reactView != null) {
+            reactView.unmountReactView();
+        }
     }
 
     public void onViewPagerScreenChanged(BaseScreenParams screenParams) {
         titleBar.onViewPagerScreenChanged(screenParams);
+    }
+
+    public void setVisible(boolean visible, boolean animate) {
+        titleBar.setVisibility(!visible);
+        visibilityAnimator.setVisible(visible, animate);
     }
 }
