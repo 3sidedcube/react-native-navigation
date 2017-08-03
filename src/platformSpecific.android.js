@@ -121,6 +121,10 @@ function setSideMenuVisible(animated, visible, side) {
   NativeReactModule.setSideMenuVisible(animated, visible, side);
 }
 
+function setSideMenuEnabled(enabled, side) {
+  NativeReactModule.setSideMenuEnabled(enabled, side);
+}
+
 function selectTopTabByTabIndex(screenInstanceId, index) {
   NativeReactModule.selectTopTabByTabIndex(screenInstanceId, index);
 }
@@ -173,6 +177,14 @@ function setScreenStyle(screenInstanceId, style) {
   NativeReactModule.setScreenStyle(screenInstanceId, style);
 }
 
+async function isAppLaunched() {
+  return await NativeReactModule.isAppLaunched();
+}
+
+async function getCurrentlyVisibleScreenId() {
+  return await NativeReactModule.getCurrentlyVisibleScreenId();
+}
+
 module.exports = {
   startApp,
   push,
@@ -195,6 +207,7 @@ module.exports = {
   dismissInAppNotification,
   toggleSideMenuVisible,
   setSideMenuVisible,
+  setSideMenuEnabled,
   selectBottomTabByNavigatorId,
   selectBottomTabByTabIndex,
   setBottomTabBadgeByNavigatorId,
@@ -205,5 +218,7 @@ module.exports = {
   dismissSnackbar,
   showContextualMenu,
   dismissContextualMenu,
-  setScreenStyle
+  setScreenStyle,
+  isAppLaunched,
+  getCurrentlyVisibleScreenId
 };

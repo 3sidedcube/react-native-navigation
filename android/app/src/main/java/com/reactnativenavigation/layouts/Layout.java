@@ -37,6 +37,8 @@ public interface Layout extends ScreenStackContainer {
 
     void setSideMenuVisible(boolean animated, boolean visible, Side side);
 
+    void setSideMenuEnabled(boolean enabled, Side side);
+
     void showSnackbar(SnackbarParams params);
 
     void showSlidingOverlay(SlidingOverlayParams params);
@@ -64,4 +66,6 @@ public interface Layout extends ScreenStackContainer {
     void selectTopTabByScreen(String screenInstanceId);
 
     void updateScreenStyle(String screenInstanceId, Bundle styleParams);
+
+    String getCurrentlyVisibleScreenId();
 }
