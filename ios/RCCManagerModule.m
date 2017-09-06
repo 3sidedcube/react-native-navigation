@@ -5,18 +5,12 @@
 #import "RCCViewController.h"
 #import "RCCDrawerController.h"
 #import "RCCLightBox.h"
+#import <React/RCTConvert.h>
 #import "RCCTabBarController.h"
 #import "LGSideMenuController.h"
 #import "RCCTheSideBarManagerViewController.h"
 #import "RCCNotification.h"
-
-#if __has_include(<React/RCTConvert.h>)
-#import <React/RCTConvert.h>
-#elif __has_include("RCTConvert.h")
-#import "RCTConvert.h"
-#elif __has_include("React/RCTConvert.h")
-#import "React/RCTConvert.h"   // Required when used as a Pod in a Swift project
-#endif
+#import "RCTHelpers.h"
 
 #define kSlideDownAnimationDuration 0.35
 
@@ -230,11 +224,15 @@ RCT_EXPORT_METHOD(
 
 -(void)performSetRootController:(NSDictionary*)layout animationType:(NSString*)animationType globalProps:(NSDictionary*)globalProps
 {
+    
+    NSMutableDictionary *modifiedGloablProps = [globalProps mutableCopy];
+    modifiedGloablProps[GLOBAL_SCREEN_ACTION_COMMAND_TYPE] = COMMAND_TYPE_INITIAL_SCREEN;
+    
     // first clear the registry to remove any refernece to the previous controllers
     [[RCCManager sharedInstance] clearModuleRegistry];
     
     // create the new controller
-    UIViewController *controller = [RCCViewController controllerWithLayout:layout globalProps:globalProps bridge:[[RCCManager sharedInstance] getBridge]];
+    UIViewController *controller = [RCCViewController controllerWithLayout:layout globalProps:modifiedGloablProps bridge:[[RCCManager sharedInstance] getBridge]];
     if (controller == nil) return;
     
     id<UIApplicationDelegate> appDelegate = [UIApplication sharedApplication].delegate;
@@ -326,7 +324,11 @@ RCT_EXPORT_METHOD(
 RCT_EXPORT_METHOD(
                   showController:(NSDictionary*)layout animationType:(NSString*)animationType globalProps:(NSDictionary*)globalProps resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    UIViewController *controller = [RCCViewController controllerWithLayout:layout globalProps:globalProps bridge:[[RCCManager sharedInstance] getBridge]];
+
+    NSMutableDictionary *modifiedGlobalProps = [globalProps mutableCopy];
+    modifiedGlobalProps[@"props"][@"passProps"][GLOBAL_SCREEN_ACTION_COMMAND_TYPE] = COMMAND_TYPE_SHOW_MODAL;
+    
+    UIViewController *controller = [RCCViewController controllerWithLayout:layout globalProps:modifiedGlobalProps bridge:[[RCCManager sharedInstance] getBridge]];
     if (controller == nil)
     {
         [RCCManagerModule handleRCTPromiseRejectBlock:reject
@@ -348,6 +350,35 @@ RCT_EXPORT_METHOD(
     [[RCCManagerModule lastModalPresenterViewController] presentViewController:controller
                                                                       animated:![animationType isEqualToString:@"none"]
                                                                     completion:^(){ resolve(nil); }];
+}
+
+- (UIViewController *) getVisibleViewControllerFor:(UIViewController *)vc
+{
+    if ([vc isKindOfClass:[UINavigationController class]])
+    {
+        return [self getVisibleViewControllerFor:[((UINavigationController*)vc) visibleViewController]];
+    }
+    else if ([vc isKindOfClass:[UITabBarController class]])
+    {
+        return [self getVisibleViewControllerFor:[((UITabBarController*)vc) selectedViewController]];
+    }
+    else if (vc.presentedViewController)
+    {
+        return [self getVisibleViewControllerFor:vc.presentedViewController];
+    }
+    else
+    {
+        return vc;
+    }
+}
+
+RCT_EXPORT_METHOD(getCurrentlyVisibleScreenId:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    UIViewController *rootVC = [UIApplication sharedApplication].delegate.window.rootViewController;
+    UIViewController *visibleVC = [self getVisibleViewControllerFor:rootVC];
+    NSString *controllerId = [[RCCManager sharedIntance] getIdForController:visibleVC];
+    id result = (controllerId != nil) ? @{@"screenId": controllerId} : nil;
+    resolve(result);
 }
 
 -(BOOL)viewControllerIsModal:(UIViewController*)viewController

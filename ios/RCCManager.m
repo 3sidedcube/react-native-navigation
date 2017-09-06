@@ -1,22 +1,8 @@
 #import "RCCManager.h"
-#import "RCTBridge+Reload.h"
-#import <Foundation/Foundation.h>
-
-#if __has_include(<React/RCTBridge.h>)
+#import "RCCViewController.h"
 #import <React/RCTBridge.h>
-#elif __has_include("RCTBridge.h")
-#import "RCTBridge.h"
-#elif __has_include("React/RCTBridge.h")
-#import "React/RCTBridge.h"   // Required when used as a Pod in a Swift project
-#endif
-
-#if __has_include(<React/RCTRedBox.h>)
 #import <React/RCTRedBox.h>
-#elif __has_include("RCTRedBox.h")
-#import "RCTRedBox.h"
-#elif __has_include("React/RCTRedBox.h")
-#import "React/RCTRedBox.h"   // Required when used as a Pod in a Swift project
-#endif
+#import <Foundation/Foundation.h>
 
 @interface RCCManager() <RCTBridgeDelegate>
 @property (nonatomic, strong) NSMutableDictionary *modulesRegistry;
@@ -53,7 +39,7 @@
   {
     self.modulesRegistry = [@{} mutableCopy];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onRNReload) name:RCCReloadNotification object:nil];
+//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onRNReload) name:RCTReloadNotification object:nil];
   }
   return self;
 }
@@ -129,6 +115,32 @@
   }
 
   return component;
+}
+
+-(NSString*) getIdForController:(UIViewController*)vc
+{
+  if([vc isKindOfClass:[RCCViewController class]])
+  {
+    NSString *controllerId = ((RCCViewController*)vc).controllerId;
+    if(controllerId != nil)
+    {
+      return controllerId;
+    }
+  }
+  
+  for (NSString *key in [self.modulesRegistry allKeys])
+  {
+    NSMutableDictionary *componentsDic = self.modulesRegistry[key];
+    for (NSString *componentID in [componentsDic allKeys])
+    {
+      UIViewController *tmpVc = componentsDic[componentID];
+      if (tmpVc == vc)
+      {
+        return componentID;
+      }
+    }
+  }
+  return nil;
 }
 
 -(void)initBridgeWithBundleURL:(NSURL *)bundleURL

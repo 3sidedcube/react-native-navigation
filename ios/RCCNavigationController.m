@@ -1,32 +1,31 @@
 #import "RCCNavigationController.h"
 #import "RCCViewController.h"
 #import "RCCManager.h"
+#import <React/RCTEventDispatcher.h>
+#import <React/RCTConvert.h>
 #import <objc/runtime.h>
 #import "RCCTitleViewHelper.h"
-
-#if __has_include(<React/RCTEventDispatcher.h>)
-#import <React/RCTEventDispatcher.h>
-#elif __has_include("RCTEventDispatcher.h")
-#import "RCTEventDispatcher.h"
-#elif __has_include("React/RCTEventDispatcher.h")
-#import "React/RCTEventDispatcher.h"   // Required when used as a Pod in a Swift project
-#endif
-
-#if __has_include(<React/RCTConvert.h>)
-#import <React/RCTConvert.h>
-#elif __has_include("RCTConvert.h")
-#import "RCTConvert.h"
-#elif __has_include("React/RCTConvert.h")
-#import "React/RCTConvert.h"   // Required when used as a Pod in a Swift project
-#endif
+#import "UIViewController+Rotation.h"
+#import "RCTHelpers.h"
 
 @implementation RCCNavigationController
+{
+  BOOL _transitioning;
+  NSMutableArray *_queuedViewControllers;
+}
 
-NSString const *CALLBACK_ASSOCIATED_KEY = @"RCCNavigationController.CALLBACK_ASSOCIATED_KEY";
-NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSOCIATED_ID";
+NSString *const NAVIGATION_ITEM_CALLBACK_ID_ASSOCIATED_KEY = @"RCCNavigationController.CALLBACK_ASSOCIATED_KEY";
+NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationController.CALLBACK_ASSOCIATED_ID";
+
+
+-(UIInterfaceOrientationMask)supportedInterfaceOrientations {
+  return [self supportedControllerOrientations];
+}
 
 - (instancetype)initWithProps:(NSDictionary *)props children:(NSArray *)children globalProps:(NSDictionary*)globalProps bridge:(RCTBridge *)bridge
 {
+  _queuedViewControllers = [NSMutableArray new];
+  
   NSString *component = props[@"component"];
   if (!component) return nil;
   
@@ -35,6 +34,7 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
   
   RCCViewController *viewController = [[RCCViewController alloc] initWithComponent:component passProps:passProps navigatorStyle:navigatorStyle globalProps:globalProps bridge:bridge];
   if (!viewController) return nil;
+  viewController.controllerId = props[@"id"];
   
   NSArray *leftButtons = props[@"leftButtons"];
   if (leftButtons)
@@ -58,6 +58,9 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
                    props:props
                    style:navigatorStyle];
   
+
+  [self setRotation:props];
+  
   return self;
 }
 
@@ -72,7 +75,9 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
     NSString *component = actionParams[@"component"];
     if (!component) return;
     
-    NSDictionary *passProps = actionParams[@"passProps"];
+    NSMutableDictionary *passProps = [actionParams[@"passProps"] mutableCopy];
+    passProps[GLOBAL_SCREEN_ACTION_COMMAND_TYPE] = COMMAND_TYPE_PUSH;
+    passProps[GLOBAL_SCREEN_ACTION_TIMESTAMP] = actionParams[GLOBAL_SCREEN_ACTION_TIMESTAMP];
     NSDictionary *navigatorStyle = actionParams[@"style"];
     
     // merge the navigatorStyle of our parent
@@ -82,23 +87,55 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
       NSMutableDictionary *mergedStyle = [NSMutableDictionary dictionaryWithDictionary:parent.navigatorStyle];
       
       // there are a few styles that we don't want to remember from our parent (they should be local)
-      [mergedStyle removeObjectForKey:@"navBarHidden"];
-      [mergedStyle removeObjectForKey:@"statusBarHidden"];
-      [mergedStyle removeObjectForKey:@"navBarHideOnScroll"];
-      [mergedStyle removeObjectForKey:@"drawUnderNavBar"];
-      [mergedStyle removeObjectForKey:@"drawUnderTabBar"];
-      [mergedStyle removeObjectForKey:@"statusBarBlur"];
-      [mergedStyle removeObjectForKey:@"navBarBlur"];
-      [mergedStyle removeObjectForKey:@"navBarTranslucent"];
-      [mergedStyle removeObjectForKey:@"statusBarHideWithNavBar"];
-      [mergedStyle removeObjectForKey:@"autoAdjustScrollViewInsets"];
-      [mergedStyle removeObjectForKey:@"statusBarTextColorSchemeSingleScreen"];
+      NSArray <NSString *> *localStyleKeys = @[
+        @"navBarHidden",
+        @"statusBarHidden",
+        @"navBarHideOnScroll",
+        @"drawUnderNavBar",
+        @"drawUnderTabBar",
+        @"statusBarBlur",
+        @"navBarBlur",
+        @"navBarCustomView",
+        @"navBarComponentAlignment",
+        @"navBarTranslucent",
+        @"statusBarHideWithNavBar",
+        @"autoAdjustScrollViewInsets",
+        @"statusBarTextColorSchemeSingleScreen",
+        @"disabledBackGesture",
+        @"navBarButtonBorderRadius",
+        @"navBarButtonBorderWidth",
+        @"navBarButtonBorderColor",
+        @"navBarButtonBackgroundColor",
+        @"navBarButtonPadding",
+        @"navBarButtonLeftBorderRadius",
+        @"navBarButtonLeftBorderWidth",
+        @"navBarButtonLeftBorderColor",
+        @"navBarButtonLeftPadding",
+        @"navBarButtonLeftBackgroundColor",
+        @"navBarButtonRightBackgroundColor",
+        @"navBarButtonRightBorderRadius",
+        @"navBarButtonRightBorderWidth",
+        @"navBarButtonRightBorderColor",
+        @"navBarButtonRightPadding"
+      ];
+      
+      [localStyleKeys enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        [mergedStyle removeObjectForKey:obj];
+      }];
+      
+      [[RCTHelpers textAttributeKeys] enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        
+        NSString *key = [obj stringByReplacingCharactersInRange:NSMakeRange(0, 1) withString:[obj substringToIndex:1].capitalizedString];
+        [mergedStyle removeObjectForKey:[NSString stringWithFormat:@"navBarButtonLeft%@", key]];
+        [mergedStyle removeObjectForKey:[NSString stringWithFormat:@"navBarButtonRight%@", key]];
+      }];
       
       [mergedStyle addEntriesFromDictionary:navigatorStyle];
       navigatorStyle = mergedStyle;
     }
     
     RCCViewController *viewController = [[RCCViewController alloc] initWithComponent:component passProps:passProps navigatorStyle:navigatorStyle globalProps:nil bridge:bridge];
+    viewController.controllerId = passProps[@"screenInstanceID"];
     
     [self processTitleView:viewController
                      props:actionParams
@@ -138,21 +175,60 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
       [self setButtons:rightButtons viewController:viewController side:@"right" animated:NO];
     }
     
-    [self pushViewController:viewController animated:animated];
+    NSString *animationType = actionParams[@"animationType"];
+    if ([animationType isEqualToString:@"fade"])
+    {
+      CATransition *transition = [CATransition animation];
+      transition.duration = 0.25;
+      transition.type = kCATransitionFade;
+      
+      [self.view.layer addAnimation:transition forKey:kCATransition];
+      [self pushViewController:viewController animated:NO];
+    }
+    else
+    {
+      [self pushViewController:viewController animated:animated];
+    }
     return;
   }
   
   // pop
   if ([performAction isEqualToString:@"pop"])
   {
-    [self popViewControllerAnimated:animated];
+    NSString *animationType = actionParams[@"animationType"];
+    if ([animationType isEqualToString:@"fade"])
+    {
+      CATransition *transition = [CATransition animation];
+      transition.duration = 0.25;
+      transition.type = kCATransitionFade;
+      
+      [self.view.layer addAnimation:transition forKey:kCATransition];
+      [self popViewControllerAnimated:NO];
+    }
+    else
+    {
+      [self popViewControllerAnimated:animated];
+    }
     return;
   }
   
   // popToRoot
   if ([performAction isEqualToString:@"popToRoot"])
   {
-    [self popToRootViewControllerAnimated:animated];
+    NSString *animationType = actionParams[@"animationType"];
+    if ([animationType isEqualToString:@"fade"])
+    {
+      CATransition *transition = [CATransition animation];
+      transition.duration = 0.25;
+      transition.type = kCATransitionFade;
+      
+      [self.view.layer addAnimation:transition forKey:kCATransition];
+      [self popToRootViewControllerAnimated:NO];
+    }
+    else
+    {
+      [self popToRootViewControllerAnimated:animated];
+    }
     return;
   }
   
@@ -162,10 +238,12 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
     NSString *component = actionParams[@"component"];
     if (!component) return;
     
-    NSDictionary *passProps = actionParams[@"passProps"];
+    NSMutableDictionary *passProps = [actionParams[@"passProps"] mutableCopy];
+    passProps[@"commantType"] = @"resetTo";
     NSDictionary *navigatorStyle = actionParams[@"style"];
     
     RCCViewController *viewController = [[RCCViewController alloc] initWithComponent:component passProps:passProps navigatorStyle:navigatorStyle globalProps:nil bridge:bridge];
+    viewController.controllerId = passProps[@"screenInstanceID"];
     
     [self processTitleView:viewController
                      props:actionParams
@@ -184,7 +262,20 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
     
     BOOL animated = actionParams[@"animated"] ? [actionParams[@"animated"] boolValue] : YES;
     
-    [self setViewControllers:@[viewController] animated:animated];
+    NSString *animationType = actionParams[@"animationType"];
+    if ([animationType isEqualToString:@"fade"])
+    {
+      CATransition *transition = [CATransition animation];
+      transition.duration = 0.25;
+      transition.type = kCATransitionFade;
+      
+      [self.view.layer addAnimation:transition forKey:kCATransition];
+      [self setViewControllers:@[viewController] animated:NO];
+    }
+    else
+    {
+      [self setViewControllers:@[viewController] animated:animated];
+    }
     return;
   }
   
@@ -222,36 +313,36 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
     [topViewController setNavBarVisibilityChange:animatedBool];
     
   }
+  
+  // setStyle
+  if ([performAction isEqualToString:@"setStyle"])
+  {
     
-    // setStyle
-    if ([performAction isEqualToString:@"setStyle"])
+    NSDictionary *navigatorStyle = actionParams;
+    
+    // merge the navigatorStyle of our parent
+    if ([self.topViewController isKindOfClass:[RCCViewController class]])
     {
-        
-        NSDictionary *navigatorStyle = actionParams;
-        
-        // merge the navigatorStyle of our parent
-        if ([self.topViewController isKindOfClass:[RCCViewController class]])
-        {
-            RCCViewController *parent = (RCCViewController*)self.topViewController;
-            NSMutableDictionary *mergedStyle = [NSMutableDictionary dictionaryWithDictionary:parent.navigatorStyle];
-            
-            // there are a few styles that we don't want to remember from our parent (they should be local)
-            [mergedStyle setValuesForKeysWithDictionary:navigatorStyle];
-            navigatorStyle = mergedStyle;
-            
-            parent.navigatorStyle = navigatorStyle;
-            
-            [parent setStyleOnInit];
-            [parent updateStyle];
-        }
+      RCCViewController *parent = (RCCViewController*)self.topViewController;
+      NSMutableDictionary *mergedStyle = [NSMutableDictionary dictionaryWithDictionary:parent.navigatorStyle];
+      
+      // there are a few styles that we don't want to remember from our parent (they should be local)
+      [mergedStyle setValuesForKeysWithDictionary:navigatorStyle];
+      navigatorStyle = mergedStyle;
+      
+      parent.navigatorStyle = navigatorStyle;
+      
+      [parent setStyleOnInit];
+      [parent updateStyle];
     }
+  }
 }
 
 -(void)onButtonPress:(UIBarButtonItem*)barButtonItem
 {
-  NSString *callbackId = objc_getAssociatedObject(barButtonItem, &CALLBACK_ASSOCIATED_KEY);
+  NSString *callbackId = objc_getAssociatedObject(barButtonItem, &NAVIGATION_ITEM_CALLBACK_ID_ASSOCIATED_KEY);
   if (!callbackId) return;
-  NSString *buttonId = objc_getAssociatedObject(barButtonItem, &CALLBACK_ASSOCIATED_ID);
+  NSString *buttonId = objc_getAssociatedObject(barButtonItem, &NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY);
   [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:callbackId body:@
    {
      @"type": @"NavBarButtonPress",
@@ -269,23 +360,50 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
     id icon = button[@"icon"];
     if (icon) iconImage = [RCTConvert UIImage:icon];
     
+    BOOL showTitleAndIcon = button[@"showAsAction"] && [button[@"showAsAction"] isEqualToString:@"withText"];
+    
     UIBarButtonItem *barButtonItem;
-    if (iconImage)
+    if (iconImage && !showTitleAndIcon)
     {
       barButtonItem = [[UIBarButtonItem alloc] initWithImage:iconImage style:UIBarButtonItemStylePlain target:self action:@selector(onButtonPress:)];
+    }
+    else if (iconImage && showTitleAndIcon && title) {
+      
+      UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+      
+      [button setImage:[iconImage imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+      [button setTitle:title forState:UIControlStateNormal];
+      [button addTarget:self action:@selector(onButtonPress:) forControlEvents:UIControlEventTouchUpInside];
+    
+      barButtonItem = [[UIBarButtonItem alloc] initWithCustomView:button];
     }
     else if (title)
     {
       barButtonItem = [[UIBarButtonItem alloc] initWithTitle:title style:UIBarButtonItemStylePlain target:self action:@selector(onButtonPress:)];
     }
     else continue;
-    objc_setAssociatedObject(barButtonItem, &CALLBACK_ASSOCIATED_KEY, button[@"onPress"], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    
+    [RCTHelpers styleNavigationItem:barButtonItem inViewController:viewController side:side];
+    if (barButtonItem.customView) {
+      [barButtonItem.customView sizeToFit];
+    }
+    
+    if (barButtonItem.customView && [barButtonItem.customView isKindOfClass:[UIButton class]]) {
+      objc_setAssociatedObject(barButtonItem.customView, &NAVIGATION_ITEM_CALLBACK_ID_ASSOCIATED_KEY, button[@"onPress"], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } else {
+      objc_setAssociatedObject(barButtonItem, &NAVIGATION_ITEM_CALLBACK_ID_ASSOCIATED_KEY, button[@"onPress"], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    
     [barButtonItems addObject:barButtonItem];
     
     NSString *buttonId = button[@"id"];
     if (buttonId)
     {
-      objc_setAssociatedObject(barButtonItem, &CALLBACK_ASSOCIATED_ID, buttonId, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+      if (barButtonItem.customView && [barButtonItem.customView isKindOfClass:[UIButton class]]) {
+        objc_setAssociatedObject(barButtonItem.customView, &NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY, buttonId, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+      } else {
+        objc_setAssociatedObject(barButtonItem, &NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY, buttonId, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+      }
     }
     
     NSNumber *disabled = button[@"disabled"];
@@ -296,7 +414,11 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
     
     NSNumber *disableIconTintString = button[@"disableIconTint"];
     BOOL disableIconTint = disableIconTintString ? [disableIconTintString boolValue] : NO;
-    if (disableIconTint) {
+    if (disableIconTint && barButtonItem.customView && [barButtonItem.customView isKindOfClass:[UIButton class]]) {
+      UIButton *button = (UIButton *)barButtonItem.customView;
+      [button setImage:[[button imageForState:UIControlStateNormal] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
+    }
+    else if (disableIconTint) {
       [barButtonItem setImage:[barButtonItem.image imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal]];
     }
     
@@ -323,19 +445,39 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
                   props:(NSDictionary*)props
                   style:(NSDictionary*)style
 {
-  
+  BOOL isSetSubtitleBool = props[@"isSetSubtitle"] ? [props[@"isSetSubtitle"] boolValue] : false;
   RCCTitleViewHelper *titleViewHelper = [[RCCTitleViewHelper alloc] init:viewController
                                                     navigationController:self
                                                                    title:props[@"title"]
                                                                 subtitle:props[@"subtitle"]
-                                                          titleImageData:props[@"titleImage"]];
+                                                          titleImageData:props[@"titleImage"]
+                                                           isSetSubtitle:isSetSubtitleBool];
   
   [titleViewHelper setup:style];
   
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
-  return [self.topViewController preferredStatusBarStyle];
+  if (self.presentedViewController && self.presentedViewController.isBeingDismissed) {
+    return [self.topViewController preferredStatusBarStyle];
+  } else {
+    return [self.visibleViewController preferredStatusBarStyle];
+  }
+}
+
+- (void)pushViewController:(UIViewController *)viewController animated:(BOOL)animated
+{
+  if(_transitioning)
+  {
+    NSDictionary *pushDetails =@{ @"viewController": viewController, @"animated": @(animated) };
+    [_queuedViewControllers addObject:pushDetails];
+    
+    return;
+  }
+  
+  _transitioning = YES;
+  
+  [super pushViewController:viewController animated:animated];
 }
 
 
@@ -346,5 +488,22 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
   [viewController setNeedsStatusBarAppearanceUpdate];
 }
 
+- (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    _transitioning = NO;
+    if ([_queuedViewControllers count] > 0) {
+      NSDictionary *toPushDetails = [_queuedViewControllers firstObject];
+      [_queuedViewControllers removeObjectAtIndex:0];
+      [self pushViewController:toPushDetails[@"viewController"] animated:[toPushDetails[@"animated"] boolValue]];
+    }
+  });
+}
 
+
+- (void)viewWillAppear:(BOOL)animated
+{
+  [super viewWillAppear:animated];
+  [self setNeedsStatusBarAppearanceUpdate];
+}
 @end

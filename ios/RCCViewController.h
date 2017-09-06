@@ -1,12 +1,13 @@
 #import <UIKit/UIKit.h>
-
-#if __has_include(<React/RCTBridge.h>)
 #import <React/RCTBridge.h>
-#elif __has_include("RCTBridge.h")
-#import "RCTBridge.h"
-#elif __has_include("React/RCTBridge.h")
-#import "React/RCTBridge.h"   // Required when used as a Pod in a Swift project
-#endif
+
+#define GLOBAL_SCREEN_ACTION_COMMAND_TYPE       @"commandType"
+#define GLOBAL_SCREEN_ACTION_TIMESTAMP          @"timestamp"
+#define COMMAND_TYPE_PUSH                       @"Push"
+#define COMMAND_TYPE_SHOW_MODAL                 @"ShowModal"
+#define COMMAND_TYPE_BOTTOME_TAB_SELECTED       @"BottomTabSelected"
+#define COMMAND_TYPE_INITIAL_SCREEN             @"InitialScreen"
+
 
 extern NSString* const RCCViewControllerCancelReactTouchesNotification;
 
@@ -14,6 +15,9 @@ extern NSString* const RCCViewControllerCancelReactTouchesNotification;
 
 @property (nonatomic) NSMutableDictionary *navigatorStyle;
 @property (nonatomic) BOOL navBarHidden;
+@property (nonatomic, strong) NSString *controllerId;
+@property (nonatomic, strong) NSString *commandType;
+@property (nonatomic, strong) NSString *timestamp;
 
 + (UIViewController*)controllerWithLayout:(NSDictionary *)layout globalProps:(NSDictionary *)globalProps bridge:(RCTBridge *)bridge;
 

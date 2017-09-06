@@ -7,30 +7,9 @@
 //
 
 #import "RCTHelpers.h"
-
-#if __has_include(<React/RCTView.h>)
 #import <React/RCTView.h>
-#elif __has_include("RCTView.h")
-#import "RCTView.h"
-#elif __has_include("React/RCTView.h")
-#import "React/RCTView.h"   // Required when used as a Pod in a Swift project
-#endif
-
-#if __has_include(<React/RCTScrollView.h>)
 #import <React/RCTScrollView.h>
-#elif __has_include("RCTScrollView.h")
-#import "RCTScrollView.h"
-#elif __has_include("React/RCTScrollView.h")
-#import "React/RCTScrollView.h"   // Required when used as a Pod in a Swift project
-#endif
-
-#if __has_include(<React/RCTFont.h>)
 #import <React/RCTFont.h>
-#elif __has_include("RCTFont.h")
-#import "RCTFont.h"
-#elif __has_include("React/RCTFont.h")
-#import "React/RCTFont.h"   // Required when used as a Pod in a Swift project
-#endif
 
 @implementation RCTHelpers
 
@@ -221,5 +200,9 @@
     return [self textAttributesFromDictionary:dictionary withPrefix:prefix baseFont:[UIFont systemFontOfSize:[UIFont systemFontSize]]];
 }
 
++ (NSString *)getTimestampString {
+    long long milliseconds = (long long)([[NSDate date] timeIntervalSince1970] * 1000.0);
+    return [NSString stringWithFormat:@"%lld", milliseconds];
+}
 
 @end

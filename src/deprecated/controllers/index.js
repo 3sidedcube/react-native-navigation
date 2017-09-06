@@ -168,6 +168,9 @@ var Controllers = {
       popToRoot: function (params) {
         RCCManager.NavigationControllerIOS(id, "popToRoot", params);
       },
+      setDrawerEnabled: function (params) {
+        RCCManager.DrawerControllerIOS(id, "setDrawerEnabled", params);
+      },
       setTitle: function (params) {
         if (params['style']) {
           params['style'] = Object.assign({}, params['style']);
@@ -253,6 +256,10 @@ var Controllers = {
       },
       switchTo: function (params) {
         return RCCManager.TabBarControllerIOS(id, "switchTo", params);
+      },
+      setTabButton: function (params) {
+        _processProperties(params);
+        return RCCManager.TabBarControllerIOS(id, "setTabButton", params);
       }
     };
   },
@@ -313,6 +320,12 @@ var Controllers = {
         duration: 0.3,
         fade: true
       }
+    }
+  },
+
+  ScreenUtils: {
+    getCurrentlyVisibleScreenId: async function() {
+      return await RCCManager.getCurrentlyVisibleScreenId();
     }
   },
 

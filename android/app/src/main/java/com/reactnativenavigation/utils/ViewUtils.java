@@ -1,26 +1,34 @@
 package com.reactnativenavigation.utils;
 
-import android.content.Context;
+import android.app.Activity;
+import android.content.res.Resources;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.Nullable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.SpannedString;
+import android.text.style.ForegroundColorSpan;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
-import android.view.WindowManager;
-
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import com.reactnativenavigation.NavigationApplication;
 import com.reactnativenavigation.params.AppStyle;
 import com.reactnativenavigation.screens.Screen;
+import com.reactnativenavigation.views.utils.Point;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ViewUtils {
     private static final AtomicInteger viewId = new AtomicInteger(1);
+    private static int statusBarHeight = -1;
+    private static int toolBarHeight = -1;
 
     public static void runOnPreDraw(final View view, final Runnable task) {
         view.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
@@ -49,7 +57,7 @@ public class ViewUtils {
 
     public static float convertPixelToSp(float pixels) {
         float scaledDensity = NavigationApplication.instance.getResources().getDisplayMetrics().scaledDensity;
-        return pixels/scaledDensity;
+        return pixels / scaledDensity;
     }
 
     public static float convertSpToPixel(float pixels) {
@@ -65,10 +73,15 @@ public class ViewUtils {
         }
     }
 
-    public static float getScreenHeight() {
-        WindowManager wm = (WindowManager) NavigationApplication.instance.getSystemService(Context.WINDOW_SERVICE);
+    public static float getWindowWidth(Activity activity) {
         DisplayMetrics metrics = new DisplayMetrics();
-        wm.getDefaultDisplay().getMetrics(metrics);
+        activity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        return metrics.widthPixels;
+    }
+
+    public static float getWindowHeight(Activity activity) {
+        DisplayMetrics metrics = new DisplayMetrics();
+        activity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
         return metrics.heightPixels;
     }
 
@@ -91,11 +104,13 @@ public class ViewUtils {
     /**
      * Returns the first instance of clazz in root
      */
-    @Nullable public static <T> T findChildByClass(ViewGroup root, Class clazz) {
+    @Nullable
+    public static <T> T findChildByClass(ViewGroup root, Class clazz) {
         return findChildByClass(root, clazz, null);
     }
 
-    @Nullable public static <T> T findChildByClass(ViewGroup root, Class clazz, Matcher<T> matcher) {
+    @Nullable
+    public static <T> T findChildByClass(ViewGroup root, Class clazz, Matcher<T> matcher) {
         for (int i = 0; i < root.getChildCount(); i++) {
             View view = root.getChildAt(i);
             if (clazz.isAssignableFrom(view.getClass())) {
@@ -147,5 +162,53 @@ public class ViewUtils {
         }
         return findParentScreen(parent.getParent());
     }
-}
 
+    public static Point getLocationOnScreen(View view) {
+        int[] xy = new int[2];
+        view.getLocationOnScreen(xy);
+        xy[1] -= getStatusBarHeight();
+        return new Point(xy[0], xy[1]);
+    }
+
+    public static int getStatusBarHeight() {
+        if (statusBarHeight > 0) {
+            return statusBarHeight;
+        }
+        final Resources resources = NavigationApplication.instance.getResources();
+        final int resourceId = resources.getIdentifier("status_bar_height", "dimen", "android");
+        statusBarHeight = resourceId > 0 ?
+                resources.getDimensionPixelSize(resourceId) :
+                (int) convertDpToPixel(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? 24 : 25);
+        return statusBarHeight;
+    }
+
+    public static int getToolBarHeight() {
+        if (toolBarHeight > 0) {
+            return toolBarHeight;
+        }
+        final Resources resources = NavigationApplication.instance.getResources();
+        final int resourceId = resources.getIdentifier("action_bar_size", "dimen", "android");
+        toolBarHeight = resourceId > 0 ?
+                resources.getDimensionPixelSize(resourceId) :
+                (int) convertDpToPixel(56);
+        return toolBarHeight;
+    }
+
+
+    public static ForegroundColorSpan[] getForegroundColorSpans(TextView view) {
+        SpannedString text = new SpannedString(view.getText());
+        return text.getSpans(0, text.length(), ForegroundColorSpan.class);
+    }
+
+    public static void setSpanColor(SpannableString span, int color) {
+        span.setSpan(new ForegroundColorSpan(color), 0, span.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
+
+    public static void removeRuleCompat(RelativeLayout.LayoutParams layoutParams, int rule) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            layoutParams.removeRule(rule);
+        } else {
+            layoutParams.addRule(rule, 0);
+        }
+    }
+}

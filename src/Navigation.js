@@ -14,9 +14,9 @@ function registerScreen(screenID, generator) {
   AppRegistry.registerComponent(screenID, generator);
 }
 
-function registerComponent(screenID, generator, store = undefined, Provider = undefined) {
+function registerComponent(screenID, generator, store = undefined, Provider = undefined, options = {}) {
   if (store && Provider) {
-    return _registerComponentRedux(screenID, generator, store, Provider);
+    return _registerComponentRedux(screenID, generator, store, Provider, options);
   } else {
     return _registerComponentNoRedux(screenID, generator);
   }
@@ -57,7 +57,7 @@ function _registerComponentNoRedux(screenID, generator) {
   return generatorWrapper;
 }
 
-function _registerComponentRedux(screenID, generator, store, Provider) {
+function _registerComponentRedux(screenID, generator, store, Provider, options) {
   const generatorWrapper = function() {
     const InternalComponent = generator();
     return class extends Screen {
@@ -79,7 +79,7 @@ function _registerComponentRedux(screenID, generator, store, Provider) {
 
       render() {
         return (
-          <Provider store={store}>
+          <Provider store={store} {...options}>
             <InternalComponent testID={screenID} navigator={this.navigator} {...this.state.internalProps} />
           </Provider>
         );
@@ -109,6 +109,10 @@ function dismissModal(params = {}) {
 
 function dismissAllModals(params = {}) {
   return platformSpecific.dismissAllModals(params);
+}
+
+function showSnackbar(params = {}) {
+  return platformSpecific.showSnackbar(params);
 }
 
 function showLightBox(params = {}) {
@@ -144,10 +148,14 @@ function clearEventHandler(navigatorEventID) {
 }
 
 function handleDeepLink(params = {}) {
-  if (!params.link) return;
+  const { link, payload } = params;
+
+  if (!link) return;
+
   const event = {
     type: 'DeepLink',
-    link: params.link
+    link,
+    ...(payload ? { payload } : {})
   };
   for (let i in _allNavigatorEventHandlers) {
     _allNavigatorEventHandlers[i](event);
@@ -158,12 +166,22 @@ function launchEmailClient() {
   return platformSpecific.launchEmailClient();
 }
 
+async function isAppLaunched() {
+    return await platformSpecific.isAppLaunched();
+}
+
+function getCurrentlyVisibleScreenId() {
+    return platformSpecific.getCurrentlyVisibleScreenId();
+}
+
 export default {
   getRegisteredScreen,
+  getCurrentlyVisibleScreenId,
   registerComponent,
   showModal: showModal,
   dismissModal: dismissModal,
   dismissAllModals: dismissAllModals,
+  showSnackbar: showSnackbar,
   showLightBox: showLightBox,
   dismissLightBox: dismissLightBox,
   showInAppNotification: showInAppNotification,
@@ -173,5 +191,6 @@ export default {
   setEventHandler: setEventHandler,
   clearEventHandler: clearEventHandler,
   handleDeepLink: handleDeepLink,
-  launchEmailClient: launchEmailClient
+  launchEmailClient: launchEmailClient,
+    isAppLaunched: isAppLaunched
 };

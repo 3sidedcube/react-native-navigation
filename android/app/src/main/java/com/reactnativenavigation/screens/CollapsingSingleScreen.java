@@ -43,7 +43,12 @@ public class CollapsingSingleScreen extends SingleScreen {
         contentView = new CollapsingContentView(getContext(), screenParams.screenId, screenParams.navigationParams);
         setViewMeasurer();
         setupCollapseDetection((CollapsingTopBar) topBar);
-        addView(contentView, createLayoutParams());
+        post(new Runnable() {
+            @Override
+            public void run() {
+                addView(contentView, createLayoutParams());
+            }
+        });
     }
 
     private void setViewMeasurer() {
@@ -76,9 +81,9 @@ public class CollapsingSingleScreen extends SingleScreen {
                     @Override
                     public void onFling(CollapseAmount amount) {
                         if (screenParams.styleParams.drawScreenBelowTopBar) {
-                            ((CollapsingView) contentView).collapse(amount);
+                            ((CollapsingView) contentView).fling(amount);
                         }
-                        topBar.collapse(amount);
+                        topBar.fling(amount);
                     }
                 },
                 getCollapseBehaviour()

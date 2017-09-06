@@ -1,5 +1,6 @@
 package com.reactnativenavigation.layouts;
 
+import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -11,15 +12,18 @@ import com.reactnativenavigation.events.EventBus;
 import com.reactnativenavigation.events.ScreenChangedEvent;
 import com.reactnativenavigation.params.ContextualMenuParams;
 import com.reactnativenavigation.params.FabParams;
+import com.reactnativenavigation.params.LightBoxParams;
 import com.reactnativenavigation.params.ScreenParams;
 import com.reactnativenavigation.params.SideMenuParams;
 import com.reactnativenavigation.params.SlidingOverlayParams;
 import com.reactnativenavigation.params.SnackbarParams;
 import com.reactnativenavigation.params.TitleBarButtonParams;
 import com.reactnativenavigation.params.TitleBarLeftButtonParams;
+import com.reactnativenavigation.screens.NavigationType;
 import com.reactnativenavigation.screens.Screen;
 import com.reactnativenavigation.screens.ScreenStack;
 import com.reactnativenavigation.views.LeftButtonOnClickListener;
+import com.reactnativenavigation.views.LightBox;
 import com.reactnativenavigation.views.SideMenu;
 import com.reactnativenavigation.views.SideMenu.Side;
 import com.reactnativenavigation.views.SnackbarAndFabContainer;
@@ -40,6 +44,7 @@ public class SingleScreenLayout extends BaseLayout {
     protected LeftButtonOnClickListener leftButtonOnClickListener;
     private @Nullable SideMenu sideMenu;
     private final SlidingOverlaysQueue slidingOverlaysQueue = new SlidingOverlaysQueue();
+    private LightBox lightBox;
 
     public SingleScreenLayout(AppCompatActivity activity, SideMenuParams leftSideMenuParams,
                               SideMenuParams rightSideMenuParams, ScreenParams screenParams) {
@@ -83,7 +88,7 @@ public class SingleScreenLayout extends BaseLayout {
 
     protected void pushInitialScreen(LayoutParams lp) {
         stack.pushInitialScreen(screenParams, lp);
-        stack.show();
+        stack.show(NavigationType.Push);
     }
 
     private void sendScreenChangedEventAfterInitialPush() {
@@ -109,7 +114,7 @@ public class SingleScreenLayout extends BaseLayout {
         }
 
         if (stack.canPop()) {
-            stack.pop(true);
+            stack.pop(true, System.currentTimeMillis());
             EventBus.instance.post(new ScreenChangedEvent(stack.peek().getScreenParams()));
             return true;
         } else {
@@ -124,6 +129,12 @@ public class SingleScreenLayout extends BaseLayout {
         if (sideMenu != null) {
             sideMenu.destroy();
         }
+        if (sideMenu != null) {
+            sideMenu.destroy();
+        }
+        if (lightBox != null) {
+            lightBox.destroy();
+        }
         slidingOverlaysQueue.destroy();
     }
 
@@ -135,7 +146,7 @@ public class SingleScreenLayout extends BaseLayout {
 
     @Override
     public void pop(ScreenParams params) {
-        stack.pop(params.animateScreenTransitions, new ScreenStack.OnScreenPop() {
+        stack.pop(params.animateScreenTransitions, params.timestamp, new ScreenStack.OnScreenPop() {
             @Override
             public void onScreenPopAnimationEnd() {
                 EventBus.instance.post(new ScreenChangedEvent(stack.peek().getScreenParams()));
@@ -145,7 +156,7 @@ public class SingleScreenLayout extends BaseLayout {
 
     @Override
     public void popToRoot(ScreenParams params) {
-        stack.popToRoot(params.animateScreenTransitions, new ScreenStack.OnScreenPop() {
+        stack.popToRoot(params.animateScreenTransitions, params.timestamp, new ScreenStack.OnScreenPop() {
             @Override
             public void onScreenPopAnimationEnd() {
                 EventBus.instance.post(new ScreenChangedEvent(stack.peek().getScreenParams()));
@@ -192,7 +203,7 @@ public class SingleScreenLayout extends BaseLayout {
 
     @Override
     public void setFab(String screenInstanceId, String navigatorEventId, FabParams fabParams) {
-        stack.setFab(screenInstanceId, navigatorEventId, fabParams);
+        stack.setFab(screenInstanceId, fabParams);
     }
 
     @Override
@@ -210,6 +221,13 @@ public class SingleScreenLayout extends BaseLayout {
     }
 
     @Override
+    public void setSideMenuEnabled(boolean enabled, Side side) {
+        if (sideMenu != null) {
+            sideMenu.setEnabled(enabled, side);
+        }
+    }
+
+    @Override
     public void showSnackbar(SnackbarParams params) {
         final String navigatorEventId = stack.peek().getNavigatorEventId();
         snackbarAndFabContainer.showSnackbar(navigatorEventId, params);
@@ -218,6 +236,47 @@ public class SingleScreenLayout extends BaseLayout {
     @Override
     public void dismissSnackbar() {
         snackbarAndFabContainer.dismissSnackbar();
+    }
+
+    @Override
+    public void showLightBox(LightBoxParams params) {
+        if (lightBox == null) {
+            lightBox = new LightBox(getActivity(), new Runnable() {
+                @Override
+                public void run() {
+                    lightBox = null;
+                }
+            }, params);
+            lightBox.show();
+        }
+    }
+
+    @Override
+    public void dismissLightBox() {
+        if (lightBox != null) {
+            lightBox.hide();
+            lightBox = null;
+        }
+    }
+
+    @Override
+    public void selectTopTabByTabIndex(String screenInstanceId, int index) {
+        stack.selectTopTabByTabIndex(screenInstanceId, index);
+    }
+
+    @Override
+    public void selectTopTabByScreen(String screenInstanceId) {
+        stack.selectTopTabByScreen(screenInstanceId);
+    }
+
+    @Override
+    public void updateScreenStyle(String screenInstanceId, Bundle styleParams) {
+        stack.updateScreenStyle(screenInstanceId, styleParams);
+    }
+
+    @Override
+    public String getCurrentlyVisibleScreenId() {
+        return stack.peek().getScreenInstanceId();
     }
 
     @Override
@@ -232,6 +291,9 @@ public class SingleScreenLayout extends BaseLayout {
 
     @Override
     public void onModalDismissed() {
+        stack.peek().getScreenParams().timestamp = System.currentTimeMillis();
+        NavigationApplication.instance.getEventEmitter().sendWillAppearEvent(stack.peek().getScreenParams(), NavigationType.DismissModal);
+        NavigationApplication.instance.getEventEmitter().sendDidAppearEvent(stack.peek().getScreenParams(), NavigationType.DismissModal);
         EventBus.instance.post(new ScreenChangedEvent(stack.peek().getScreenParams()));
     }
 
