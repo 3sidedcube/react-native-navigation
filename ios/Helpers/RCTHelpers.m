@@ -10,6 +10,9 @@
 #import <React/RCTView.h>
 #import <React/RCTScrollView.h>
 #import <React/RCTFont.h>
+#import "RCCViewController.h"
+#import "RCCNavigationController.h"
+#import <objc/runtime.h>
 
 @implementation RCTHelpers
 
@@ -218,6 +221,8 @@
 + (NSString *)getTimestampString {
     long long milliseconds = (long long)([[NSDate date] timeIntervalSince1970] * 1000.0);
     return [NSString stringWithFormat:@"%lld", milliseconds];
+}
+
 + (void)styleNavigationItem:(UIBarButtonItem *)barButtonItem inViewController:(UIViewController *)viewController side:(NSString *)side
 {
     if ([viewController isKindOfClass:[RCCViewController class]]) {

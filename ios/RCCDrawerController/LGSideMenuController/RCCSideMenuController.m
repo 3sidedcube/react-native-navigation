@@ -10,7 +10,7 @@
 #import "RCCDrawerController.h"
 #import "RCCViewController.h"
 #import "RCCDrawerHelper.h"
-#import "RCTConvert.h"
+#import <React/RCTConvert.h>
 #import "RCCManagerModule.h"
 
 @interface RCCSideMenuController ()
