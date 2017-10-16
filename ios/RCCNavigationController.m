@@ -3,8 +3,10 @@
 #import "RCCManager.h"
 #import <React/RCTEventDispatcher.h>
 #import <React/RCTConvert.h>
+#import <React/RCTRootView.h>
 #import <objc/runtime.h>
 #import "RCCTitleViewHelper.h"
+#import "RCCCustomBarButtonItem.h"
 #import "UIViewController+Rotation.h"
 #import "RCTHelpers.h"
 
@@ -80,58 +82,64 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
     passProps[GLOBAL_SCREEN_ACTION_TIMESTAMP] = actionParams[GLOBAL_SCREEN_ACTION_TIMESTAMP];
     NSDictionary *navigatorStyle = actionParams[@"style"];
     
-    // merge the navigatorStyle of our parent
-    if ([self.topViewController isKindOfClass:[RCCViewController class]])
-    {
-      RCCViewController *parent = (RCCViewController*)self.topViewController;
-      NSMutableDictionary *mergedStyle = [NSMutableDictionary dictionaryWithDictionary:parent.navigatorStyle];
-      
-      // there are a few styles that we don't want to remember from our parent (they should be local)
-      NSArray <NSString *> *localStyleKeys = @[
-        @"navBarHidden",
-        @"statusBarHidden",
-        @"navBarHideOnScroll",
-        @"drawUnderNavBar",
-        @"drawUnderTabBar",
-        @"statusBarBlur",
-        @"navBarBlur",
-        @"navBarCustomView",
-        @"navBarComponentAlignment",
-        @"navBarTranslucent",
-        @"statusBarHideWithNavBar",
-        @"autoAdjustScrollViewInsets",
-        @"statusBarTextColorSchemeSingleScreen",
-        @"disabledBackGesture",
-        @"navBarButtonBorderRadius",
-        @"navBarButtonBorderWidth",
-        @"navBarButtonBorderColor",
-        @"navBarButtonBackgroundColor",
-        @"navBarButtonPadding",
-        @"navBarButtonLeftBorderRadius",
-        @"navBarButtonLeftBorderWidth",
-        @"navBarButtonLeftBorderColor",
-        @"navBarButtonLeftPadding",
-        @"navBarButtonLeftBackgroundColor",
-        @"navBarButtonRightBackgroundColor",
-        @"navBarButtonRightBorderRadius",
-        @"navBarButtonRightBorderWidth",
-        @"navBarButtonRightBorderColor",
-        @"navBarButtonRightPadding"
-      ];
-      
-      [localStyleKeys enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        [mergedStyle removeObjectForKey:obj];
-      }];
-      
-      [[RCTHelpers textAttributeKeys] enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+    NSNumber *keepStyleAcrossPush = [[RCCManager sharedInstance] getAppStyle][@"keepStyleAcrossPush"];
+    BOOL keepStyleAcrossPushBool = keepStyleAcrossPush ? [keepStyleAcrossPush boolValue] : YES;
+    
+    if (keepStyleAcrossPushBool) {
         
-        NSString *key = [obj stringByReplacingCharactersInRange:NSMakeRange(0, 1) withString:[obj substringToIndex:1].capitalizedString];
-        [mergedStyle removeObjectForKey:[NSString stringWithFormat:@"navBarButtonLeft%@", key]];
-        [mergedStyle removeObjectForKey:[NSString stringWithFormat:@"navBarButtonRight%@", key]];
-      }];
+        if ([self.topViewController isKindOfClass:[RCCViewController class]])
+        {
+            RCCViewController *parent = (RCCViewController*)self.topViewController;
+            NSMutableDictionary *mergedStyle = [NSMutableDictionary dictionaryWithDictionary:parent.navigatorStyle];
       
-      [mergedStyle addEntriesFromDictionary:navigatorStyle];
-      navigatorStyle = mergedStyle;
+            // there are a few styles that we don't want to remember from our parent (they should be local)
+            NSArray <NSString *> *localStyleKeys = @[
+                @"navBarHidden",
+                @"statusBarHidden",
+                @"navBarHideOnScroll",
+                @"drawUnderNavBar",
+                @"drawUnderTabBar",
+                @"statusBarBlur",
+                @"navBarBlur",
+                @"navBarCustomView",
+                @"navBarComponentAlignment",
+                @"navBarTranslucent",
+                @"statusBarHideWithNavBar",
+                @"autoAdjustScrollViewInsets",
+                @"statusBarTextColorSchemeSingleScreen",
+                @"disabledBackGesture",
+                @"disabledSimultaneousGesture",
+                @"navBarButtonBorderRadius",
+                @"navBarButtonBorderWidth",
+                @"navBarButtonBorderColor",
+                @"navBarButtonBackgroundColor",
+                @"navBarButtonPadding",
+                @"navBarButtonLeftBorderRadius",
+                @"navBarButtonLeftBorderWidth",
+                @"navBarButtonLeftBorderColor",
+                @"navBarButtonLeftPadding",
+                @"navBarButtonLeftBackgroundColor",
+                @"navBarButtonRightBackgroundColor",
+                @"navBarButtonRightBorderRadius",
+                @"navBarButtonRightBorderWidth",
+                @"navBarButtonRightBorderColor",
+                @"navBarButtonRightPadding"
+            ];
+
+            [localStyleKeys enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                [mergedStyle removeObjectForKey:obj];
+            }];
+
+            [[RCTHelpers textAttributeKeys] enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+
+            NSString *key = [obj stringByReplacingCharactersInRange:NSMakeRange(0, 1) withString:[obj substringToIndex:1].capitalizedString];
+                [mergedStyle removeObjectForKey:[NSString stringWithFormat:@"navBarButtonLeft%@", key]];
+                [mergedStyle removeObjectForKey:[NSString stringWithFormat:@"navBarButtonRight%@", key]];
+            }];
+
+            [mergedStyle addEntriesFromDictionary:navigatorStyle];
+            navigatorStyle = mergedStyle;
+        }
     }
     
     RCCViewController *viewController = [[RCCViewController alloc] initWithComponent:component passProps:passProps navigatorStyle:navigatorStyle globalProps:nil bridge:bridge];
@@ -142,6 +150,12 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
                      style:navigatorStyle];
     
     NSString *backButtonTitle = actionParams[@"backButtonTitle"];
+    if (!backButtonTitle) {
+      NSNumber *hideBackButtonTitle = [[RCCManager sharedInstance] getAppStyle][@"hideBackButtonTitle"];
+      BOOL hideBackButtonTitleBool = hideBackButtonTitle ? [hideBackButtonTitle boolValue] : NO;
+      backButtonTitle = hideBackButtonTitleBool ? @"" : backButtonTitle;
+    }
+    
     if (backButtonTitle)
     {
       UIBarButtonItem *backItem = [[UIBarButtonItem alloc] initWithTitle:backButtonTitle
@@ -244,6 +258,8 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
     
     RCCViewController *viewController = [[RCCViewController alloc] initWithComponent:component passProps:passProps navigatorStyle:navigatorStyle globalProps:nil bridge:bridge];
     viewController.controllerId = passProps[@"screenInstanceID"];
+    
+    viewController.navigationItem.hidesBackButton = YES;
     
     [self processTitleView:viewController
                      props:actionParams
@@ -361,7 +377,8 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
     if (icon) iconImage = [RCTConvert UIImage:icon];
     
     BOOL showTitleAndIcon = button[@"showAsAction"] && [button[@"showAsAction"] isEqualToString:@"withText"];
-    
+    NSString *__nullable component = button[@"component"];
+
     UIBarButtonItem *barButtonItem;
     if (iconImage && !showTitleAndIcon)
     {
@@ -380,6 +397,10 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
     else if (title)
     {
       barButtonItem = [[UIBarButtonItem alloc] initWithTitle:title style:UIBarButtonItemStylePlain target:self action:@selector(onButtonPress:)];
+    }
+    else if (component) {
+      RCTBridge *bridge = [[RCCManager sharedInstance] getBridge];
+      barButtonItem = [[RCCCustomBarButtonItem alloc] initWithComponentName:component passProps:button[@"passProps"] bridge:bridge];
     }
     else continue;
     
@@ -420,6 +441,16 @@ NSString *const NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY = @"RCCNavigationContro
     }
     else if (disableIconTint) {
       [barButtonItem setImage:[barButtonItem.image imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal]];
+    }
+    
+    if ([viewController isKindOfClass:[RCCViewController class]]) {
+      RCCViewController *rccViewController = ((RCCViewController*)viewController);
+      NSDictionary *navigatorStyle = rccViewController.navigatorStyle;
+      id disabledButtonColor = navigatorStyle[@"disabledButtonColor"];
+      if (disabledButtonColor) {
+        UIColor *color = [RCTConvert UIColor:disabledButtonColor];
+        [barButtonItem setTitleTextAttributes:@{NSForegroundColorAttributeName : color} forState:UIControlStateDisabled];
+      }
     }
     
     NSString *testID = button[@"testID"];
