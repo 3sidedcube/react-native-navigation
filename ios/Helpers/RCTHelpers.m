@@ -24,6 +24,21 @@
     return allSubviews;
 }
 
++ (NSArray *)textAttributeKeys
+{
+    return @[
+             @"color",
+             @"fontFamily",
+             @"fontWeight",
+             @"fontSize",
+             @"fontStyle",
+             @"shadowColor",
+             @"shadowOffset",
+             @"shadowBlurRadius",
+             @"showShadow"
+     ];
+}
+
 /*
  The YellowBox is added to each RCTRootView. Regardless if there are warnings or not, if there's a warning anywhere in the app - it is added
  Since it is always appears on the top, it blocks interactions with other components.
