@@ -440,6 +440,15 @@ public class NavigationActivity extends AppCompatActivity implements DefaultHard
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         try
         {
+            // It is possible for permissions.length to be zero indicating cancellation, for instance if requestPermissions was called while another request was
+            // already in progress. When this happens the ReactNative permission callback crashes with an ArrayIndexOutOfBoundsException
+            // TODO: This should be fixed in React Native PermissionsModule
+            if (permissions.length == 0)
+            {
+                Log.w("RNN", "Ignore onRequestPermissionsResult callback with empty permissions result");
+                return;
+            }
+
             NavigationApplication.instance.getActivityCallbacks().onRequestPermissionsResult(requestCode, permissions, grantResults);
             if (mPermissionListener != null && mPermissionListener.onRequestPermissionsResult(requestCode, permissions, grantResults)) {
                 mPermissionListener = null;
@@ -449,6 +458,7 @@ public class NavigationActivity extends AppCompatActivity implements DefaultHard
         {
             // Ignore "IllegalStateException: Tried to use permissions API while not attached to an Activity."
             // https://github.com/facebook/react-native/issues/10009
+            // TODO: This should be fixed in React Native PermissionsModule
             Log.e("RNN", ex.getMessage(), ex);
         }
     }
