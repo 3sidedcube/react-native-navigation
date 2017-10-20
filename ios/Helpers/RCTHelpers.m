@@ -307,6 +307,12 @@
         } else if (navButtonTextAttributes.allKeys.count > 0) {
             
             [barButtonItem setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateNormal];
+			if (@available(iOS 11, *)) {
+				[barButtonItem setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateHighlighted];
+				[barButtonItem setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateFocused];
+				[barButtonItem setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateDisabled];
+				[barButtonItem setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateFocused];
+			}
         }
     }
 }

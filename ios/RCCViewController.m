@@ -399,24 +399,63 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
       ) {
     
     for (UIBarButtonItem *item in viewController.navigationItem.leftBarButtonItems) {
+			
       [item setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateNormal];
+			
+			if (@available(iOS 11, *)) {
+				[item setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateHighlighted];
+				[item setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateFocused];
+				[item setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateDisabled];
+				[item setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateFocused];
+			}
       
       if (leftNavButtonTextAttributes.allKeys.count > 0) {
+				
         [item setTitleTextAttributes:leftNavButtonTextAttributes forState:UIControlStateNormal];
+				
+				if (@available(iOS 11, *)) {
+					[item setTitleTextAttributes:leftNavButtonTextAttributes forState:UIControlStateHighlighted];
+					[item setTitleTextAttributes:leftNavButtonTextAttributes forState:UIControlStateFocused];
+					[item setTitleTextAttributes:leftNavButtonTextAttributes forState:UIControlStateDisabled];
+					[item setTitleTextAttributes:leftNavButtonTextAttributes forState:UIControlStateFocused];
+				}
       }
     }
     
     for (UIBarButtonItem *item in viewController.navigationItem.rightBarButtonItems) {
+			
       [item setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateNormal];
+			
+			if (@available(iOS 11, *)) {
+				[item setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateHighlighted];
+				[item setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateFocused];
+				[item setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateDisabled];
+				[item setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateFocused];
+			}
       
       if (rightNavButtonTextAttributes.allKeys.count > 0) {
+				
         [item setTitleTextAttributes:rightNavButtonTextAttributes forState:UIControlStateNormal];
+				
+				if (@available(iOS 11, *)) {
+					[item setTitleTextAttributes:rightNavButtonTextAttributes forState:UIControlStateHighlighted];
+					[item setTitleTextAttributes:rightNavButtonTextAttributes forState:UIControlStateFocused];
+					[item setTitleTextAttributes:rightNavButtonTextAttributes forState:UIControlStateDisabled];
+					[item setTitleTextAttributes:rightNavButtonTextAttributes forState:UIControlStateFocused];
+				}
       }
     }
     
     // At the moment, this seems to be the only thing that gets the back button correctly
     [navButtonTextAttributes removeObjectForKey:NSForegroundColorAttributeName];
     [[UIBarButtonItem appearance] setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateNormal];
+		
+		if (@available(iOS 11, *)) {
+			[[UIBarButtonItem appearance] setTitleTextAttributes:rightNavButtonTextAttributes forState:UIControlStateHighlighted];
+			[[UIBarButtonItem appearance] setTitleTextAttributes:rightNavButtonTextAttributes forState:UIControlStateFocused];
+			[[UIBarButtonItem appearance] setTitleTextAttributes:rightNavButtonTextAttributes forState:UIControlStateDisabled];
+			[[UIBarButtonItem appearance] setTitleTextAttributes:rightNavButtonTextAttributes forState:UIControlStateFocused];
+		}
   }
   
   NSString *navBarButtonColor = self.navigatorStyle[@"navBarButtonColor"];
