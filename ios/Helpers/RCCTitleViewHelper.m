@@ -174,6 +174,13 @@ navigationController:(UINavigationController*)navigationController
     subtitleLabel.frame = labelframe;
     [subtitleLabel sizeToFit];
     
+    id navBarTextColor = style[@"navBarTextColor"];
+    if (navBarTextColor)
+    {
+        UIColor *color = navBarTextColor != (id)[NSNull null] ? [RCTConvert UIColor:navBarTextColor] : nil;
+        subtitleLabel.textColor = color;
+    }
+    
     [self.titleView addSubview:subtitleLabel];
     
     return subtitleLabel;
