@@ -374,14 +374,13 @@ function convertAnimationType(animationType) {
 
 function navigatorSetButtons(navigator, navigatorEventID, _params) {
   const params = _.cloneDeep(_params);
-  let rightButtons = null;
   if (params.rightButtons) {
-    rightButtons = params.rightButtons.map(function(button) {
-      let icon;
+    params.rightButtons.forEach(function(button) {
+      button.enabled = !button.disabled;
       if (button.icon) {
-        const iconSource = resolveAssetSource(button.icon);
-        if (iconSource) {
-          icon = iconSource.uri;
+        const icon = resolveAssetSource(button.icon);
+        if (icon) {
+          button.icon = icon.uri;
         }
       }
       if (button.buttonColor) {
@@ -409,7 +408,7 @@ function navigatorSetButtons(navigator, navigatorEventID, _params) {
     leftButton = {};
   }
   const fab = getFab(params);
-  newPlatformSpecific.setScreenButtons(navigator.screenInstanceID, navigatorEventID, rightButtons, leftButton, fab);
+  newPlatformSpecific.setScreenButtons(navigator.screenInstanceID, navigatorEventID, params.rightButtons, leftButton, fab);
 }
 
 function shouldRemoveLeftButton(params) {
@@ -588,14 +587,14 @@ function addNavigatorButtons(screen, sideMenuParams) {
   }
 
   // Get image uri from image id
-  let rightButtons = getRightButtons(screen);
+  const rightButtons = getRightButtons(screen);
   if (rightButtons) {
-    rightButtons = rightButtons.map(function(button) {
-      let icon;
+    rightButtons.forEach(function(button) {
+      button.enabled = !button.disabled;
       if (button.icon) {
-        const iconSource = resolveAssetSource(button.icon);
-        if (iconSource) {
-          icon = iconSource.uri;
+        const icon = resolveAssetSource(button.icon);
+        if (icon) {
+          button.icon = icon.uri;
         }
       }
       if (button.buttonColor) {
