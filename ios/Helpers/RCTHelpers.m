@@ -7,12 +7,12 @@
 //
 
 #import "RCTHelpers.h"
-#import "RCCViewController.h"
-#import "RCCNavigationController.h"
-#import <objc/runtime.h>
 #import <React/RCTView.h>
 #import <React/RCTScrollView.h>
 #import <React/RCTFont.h>
+#import "RCCViewController.h"
+#import "RCCNavigationController.h"
+#import <objc/runtime.h>
 
 @implementation RCTHelpers
 
@@ -25,6 +25,21 @@
         [allSubviews addObjectsFromArray:[self getAllSubviewsForView:subview]];
     }
     return allSubviews;
+}
+
++ (NSArray *)textAttributeKeys
+{
+    return @[
+             @"color",
+             @"fontFamily",
+             @"fontWeight",
+             @"fontSize",
+             @"fontStyle",
+             @"shadowColor",
+             @"shadowOffset",
+             @"shadowBlurRadius",
+             @"showShadow"
+     ];
 }
 
 /*
@@ -76,21 +91,6 @@
     }
     
     return removed;
-}
-
-+ (NSArray *)textAttributeKeys
-{
-    return @[
-       @"color",
-       @"fontFamily",
-       @"fontWeight",
-       @"fontSize",
-       @"fontStyle",
-       @"shadowColor",
-       @"shadowOffset",
-       @"shadowBlurRadius",
-       @"showShadow"
-    ];
 }
 
 + (NSMutableDictionary *)textAttributesFromDictionary:(NSDictionary *)dictionary withPrefix:(NSString *)prefix baseFont:(UIFont *)baseFont
@@ -213,11 +213,6 @@
     return textAttributes;
 }
 
-+ (NSMutableDictionary *)textAttributesFromDictionary:(NSDictionary *)dictionary withPrefix:(NSString *)prefix
-{
-    return [self textAttributesFromDictionary:dictionary withPrefix:prefix baseFont:[UIFont systemFontOfSize:[UIFont systemFontSize]]];
-}
-
 + (void)styleNavigationItem:(UIBarButtonItem *)barButtonItem inViewController:(UIViewController *)viewController side:(NSString *)side
 {
     if ([viewController isKindOfClass:[RCCViewController class]]) {
@@ -257,7 +252,7 @@
             
             objc_setAssociatedObject(button, &NAVIGATION_ITEM_BUTTON_ID_ASSOCIATED_KEY, buttonId, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(button, &NAVIGATION_ITEM_CALLBACK_ID_ASSOCIATED_KEY, callbackId, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-
+            
         } else if (barButtonItem.customView && [barButtonItem.customView isKindOfClass:[UIButton class]]) {
             button = (UIButton *)barButtonItem.customView;
         }
@@ -269,7 +264,7 @@
         }
         
         if (button) {
-        
+            
             button.tintColor = [viewController.navigationController.navigationBar tintColor];
             
             id borderRadius = navigatorStyle[[NSString stringWithFormat:@"navBarButton%@BorderRadius", capitalSide]] ? : navigatorStyle[@"navBarButtonBorderRadius"];
@@ -312,8 +307,24 @@
         } else if (navButtonTextAttributes.allKeys.count > 0) {
             
             [barButtonItem setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateNormal];
+			if (@available(iOS 11, *)) {
+				[barButtonItem setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateHighlighted];
+				[barButtonItem setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateFocused];
+				[barButtonItem setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateDisabled];
+				[barButtonItem setTitleTextAttributes:navButtonTextAttributes forState:UIControlStateFocused];
+			}
         }
     }
+}
+
++ (NSMutableDictionary *)textAttributesFromDictionary:(NSDictionary *)dictionary withPrefix:(NSString *)prefix
+{
+    return [self textAttributesFromDictionary:dictionary withPrefix:prefix baseFont:[UIFont systemFontOfSize:[UIFont systemFontSize]]];
+}
+
++ (NSString *)getTimestampString {
+    long long milliseconds = (long long)([[NSDate date] timeIntervalSince1970] * 1000.0);
+    return [NSString stringWithFormat:@"%lld", milliseconds];
 }
 
 @end

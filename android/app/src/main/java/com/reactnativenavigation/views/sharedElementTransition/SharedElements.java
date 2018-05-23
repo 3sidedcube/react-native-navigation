@@ -136,7 +136,11 @@ public class SharedElements {
             String key = iterator.next();
             if (!ViewVisibilityChecker.check(toElements.get(key))) {
                 iterator.remove();
-                fromElements.get(key).show();
+                SharedElementTransition fromElement = fromElements.get(key);
+                if (fromElement != null)
+                {
+                    fromElement.show();
+                }
             }
         }
     }
