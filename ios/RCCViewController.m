@@ -326,6 +326,9 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
         
         UIColor *color = screenBackgroundColor != (id)[NSNull null] ? [RCTConvert UIColor:screenBackgroundColor] : nil;
         viewController.view.backgroundColor = color;
+        if ([viewController isKindOfClass:[RCCViewController class]]) {
+            ((RCCViewController *)viewController).rootView.backgroundColor = color;
+        }
     }
     
     NSString *screenBackgroundImageName = self.navigatorStyle[@"screenBackgroundImageName"];
