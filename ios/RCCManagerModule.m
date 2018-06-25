@@ -103,7 +103,7 @@ RCT_EXPORT_MODULE(RCCManager);
 
 +(UIViewController*)lastModalPresenterViewController
 {
-    return [self modalPresenterViewControllers:nil];
+    return [self modalPresenterViewControllers:[NSMutableArray new]];
 }
 
 +(NSError*)rccErrorWithCode:(NSInteger)code description:(NSString*)description
