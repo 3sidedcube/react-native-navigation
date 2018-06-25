@@ -348,35 +348,42 @@
 }
 
 +(void)sendTabEvent:(NSString *)event controller:(UIViewController*)viewController body:(NSDictionary*)body{
-    if ([viewController.view isKindOfClass:[RCTRootView class]]){
-        RCTRootView *rootView = (RCTRootView *)viewController.view;
-        
-        if (rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
-            NSString *navigatorID = rootView.appProperties[@"navigatorID"];
-            NSString *screenInstanceID = rootView.appProperties[@"screenInstanceID"];
-            
-            
-            NSMutableDictionary *screenDict = [NSMutableDictionary dictionaryWithDictionary:@
-                                               {
-                                                   @"id": event,
-                                                   @"navigatorID": navigatorID,
-                                                   @"screenInstanceID": screenInstanceID
-                                               }];
-            
-            
-            if (body) {
-                [screenDict addEntriesFromDictionary:body];
-            }
-            
-            [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:rootView.appProperties[@"navigatorEventID"] body:screenDict];
-        }
-    }
+  
+  RCTRootView *rootView;
+  if ([self.view isKindOfClass:[RCTRootView class]]){
+    rootView = (RCTRootView *)self.view;
+  } else {
+    rootView = self.rootView
+  }
+  
+  if (rootView){
     
-    if ([viewController isKindOfClass:[UINavigationController class]]) {
-        UINavigationController *navigationController = (UINavigationController*)viewController;
-        UIViewController *topViewController = [navigationController topViewController];
-        [RCCTabBarController sendTabEvent:event controller:topViewController body:body];
+    if (rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
+      NSString *navigatorID = rootView.appProperties[@"navigatorID"];
+      NSString *screenInstanceID = rootView.appProperties[@"screenInstanceID"];
+      
+      
+      NSMutableDictionary *screenDict = [NSMutableDictionary dictionaryWithDictionary:@
+                                         {
+                                           @"id": event,
+                                           @"navigatorID": navigatorID,
+                                           @"screenInstanceID": screenInstanceID
+                                         }];
+      
+      
+      if (body) {
+        [screenDict addEntriesFromDictionary:body];
+      }
+      
+      [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:rootView.appProperties[@"navigatorEventID"] body:screenDict];
     }
+  }
+  
+  if ([viewController isKindOfClass:[UINavigationController class]]) {
+    UINavigationController *navigationController = (UINavigationController*)viewController;
+    UIViewController *topViewController = [navigationController topViewController];
+    [RCCTabBarController sendTabEvent:event controller:topViewController body:body];
+  }
 }
 
 

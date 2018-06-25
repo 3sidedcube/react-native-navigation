@@ -201,44 +201,63 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
     self.view = nil;
 }
 
--(void)onCancelReactTouches {
+-(void)onCancelReactTouches
+{
+    RCTRootView *rootView;
     if ([self.view isKindOfClass:[RCTRootView class]]){
-        [(RCTRootView*)self.view cancelTouches];
+        rootView = (RCTRootView *)self.view;
+    } else {
+        rootView = self.rootView;
     }
+  if (rootView){
+      [rootView cancelTouches];
+  }
 }
 
-- (void)sendScreenChangedEvent:(NSString *)eventName {
-    if ([self.view isKindOfClass:[RCTRootView class]]) {
-        
-        RCTRootView *rootView = (RCTRootView *)self.view;
-        
-        if (rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
-            
-            [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:rootView.appProperties[@"navigatorEventID"] body:@
-             {
-                 @"type": @"ScreenChangedEvent",
-                 @"id": eventName
-             }];
-        }
+- (void)sendScreenChangedEvent:(NSString *)eventName
+{
+    RCTRootView *rootView;
+    if ([self.view isKindOfClass:[RCTRootView class]]){
+        rootView = (RCTRootView *)self.view;
+    } else {
+        rootView = self.rootView;
+    }
+    
+    if (rootView && rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
+      
+      [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:rootView.appProperties[@"navigatorEventID"] body:@
+       {
+         @"type": @"ScreenChangedEvent",
+         @"id": eventName
+       }];
     }
 }
 
 - (void)sendGlobalScreenEvent:(NSString *)eventName endTimestampString:(NSString *)endTimestampStr shouldReset:(BOOL)shouldReset {
+  
+  if (!self.commandType) return;
+    
+    RCTRootView *rootView;
     if ([self.view isKindOfClass:[RCTRootView class]]){
-        NSString *screenName = [((RCTRootView*)self.view) moduleName];
-        
-        [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:eventName body:@
-         {
-             @"commandType": self.commandType ? self.commandType : @"",
-             @"screen": screenName ? screenName : @"",
-             @"startTime": self.timestamp ? self.timestamp : @"",
-             @"endTime": endTimestampStr ? endTimestampStr : @""
-         }];
-        
-        if (shouldReset) {
-            self.commandType = nil;
-            self.timestamp = nil;
-        }
+        rootView = (RCTRootView *)self.view;
+    } else {
+        rootView = self.rootView;
+    }
+  
+  if (rootView){
+    NSString *screenName = [rootView moduleName];
+    
+    [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:eventName body:@
+     {
+       @"commandType": self.commandType ? self.commandType : @"",
+       @"screen": screenName ? screenName : @"",
+       @"startTime": self.timestamp ? self.timestamp : @"",
+       @"endTime": endTimestampStr ? endTimestampStr : @""
+     }];
+    
+    if (shouldReset) {
+      self.commandType = nil;
+      self.timestamp = nil;
     }
 }
 
@@ -615,9 +634,17 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
     
     NSString *navBarCustomView = self.navigatorStyle[@"navBarCustomView"];
     if (navBarCustomView && ![self.navigationItem.titleView isKindOfClass:[RCCCustomTitleView class]]) {
-        if ([self.view isKindOfClass:[RCTRootView class]]) {
+        
+        RCTRootView *rootView;
+        if ([self.view isKindOfClass:[RCTRootView class]]){
+            rootView = (RCTRootView *)self.view;
+        } else {
+            rootView = self.rootView
+        }
+        
+        if (rootView) {
             
-            RCTBridge *bridge = ((RCTRootView*)self.view).bridge;
+            RCTBridge *bridge = rootView.bridge;
             
             NSDictionary *initialProps = self.navigatorStyle[@"navBarCustomViewInitialProps"];
             RCTRootView *reactView = [[RCTRootView alloc] initWithBridge:bridge moduleName:navBarCustomView initialProperties:initialProps];
@@ -818,16 +845,21 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
 #pragma mark - Preview Actions
 
 - (void)onActionPress:(NSString *)id {
-    if ([self.view isKindOfClass:[RCTRootView class]]) {
-        RCTRootView *rootView = (RCTRootView *)self.view;
-        if (rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
-            [[[RCCManager sharedInstance] getBridge].eventDispatcher
-             sendAppEventWithName:rootView.appProperties[@"navigatorEventID"]
-             body:@{
-                    @"type": @"PreviewActionPress",
-                    @"id": id
-                    }];
-        }
+    
+    RCTRootView *rootView;
+    if ([self.view isKindOfClass:[RCTRootView class]]){
+        rootView = (RCTRootView *)self.view;
+    } else {
+        rootView = self.rootView;
+    }
+    
+  if (rootView && rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
+        [[[RCCManager sharedInstance] getBridge].eventDispatcher
+       sendAppEventWithName:rootView.appProperties[@"navigatorEventID"]
+       body:@{
+              @"type": @"PreviewActionPress",
+              @"id": id
+              }];
     }
 }
 
@@ -848,14 +880,23 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
 
 #pragma mark - NewRelic
 
-- (NSString*) customNewRelicInteractionName {
-    NSString *interactionName = nil;
+- (NSString*) customNewRelicInteractionName
+{
+  NSString *interactionName = nil;
+  
+    RCTRootView *rootView;
+    if ([self.view isKindOfClass:[RCTRootView class]]){
+        rootView = (RCTRootView *)self.view;
+    } else {
+        rootView = self.rootView;
+    }
     
-    if (self.view != nil && [self.view isKindOfClass:[RCTRootView class]]) {
-        NSString *moduleName = ((RCTRootView*)self.view).moduleName;
-        if(moduleName != nil) {
-            interactionName = [NSString stringWithFormat:@"RCCViewController: %@", moduleName];
-        }
+  if (rootView)
+  {
+    NSString *moduleName = rootView.moduleName;
+    if(moduleName != nil)
+    {
+      interactionName = [NSString stringWithFormat:@"RCCViewController: %@", moduleName];
     }
     
     if (interactionName == nil) {
