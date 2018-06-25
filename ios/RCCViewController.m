@@ -27,7 +27,6 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
 @property (nonatomic, strong) NSDictionary *originalNavBarImages;
 @property (nonatomic, strong) UIImageView *navBarHairlineImageView;
 @property (nonatomic, weak) id <UIGestureRecognizerDelegate> originalInteractivePopGestureDelegate;
-@property (nonatomic, strong) RCTRootView *rootView;
 @end
 
 @implementation RCCViewController
@@ -239,7 +238,6 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
          @"id": eventName
        }];
     }
-  }
 }
 
 - (void)sendGlobalScreenEvent:(NSString *)eventName endTimestampString:(NSString *)endTimestampStr shouldReset:(BOOL)shouldReset {

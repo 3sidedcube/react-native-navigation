@@ -390,10 +390,10 @@
 +(void)sendTabEvent:(NSString *)event controller:(UIViewController*)viewController body:(NSDictionary*)body{
   
   RCTRootView *rootView;
-  if ([self.view isKindOfClass:[RCTRootView class]]){
-    rootView = (RCTRootView *)self.view;
-  } else {
-    rootView = self.rootView
+  if ([viewController.view isKindOfClass:[RCTRootView class]]){
+    rootView = (RCTRootView *)viewController.view;
+  } else if ([viewController isKindOfClass:[RCCViewController class]]) {
+    rootView = ((RCCViewController *)viewController).rootView;
   }
   
   if (rootView){
