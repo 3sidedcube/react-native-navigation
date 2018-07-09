@@ -258,6 +258,7 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
       self.commandType = nil;
       self.timestamp = nil;
     }
+  }
 }
 
 
@@ -638,7 +639,7 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
         if ([self.view isKindOfClass:[RCTRootView class]]){
             rootView = (RCTRootView *)self.view;
         } else {
-            rootView = self.rootView
+            rootView = self.rootView;
         }
         
         if (rootView) {
@@ -901,6 +902,7 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
     if (interactionName == nil) {
         interactionName = [NSString stringWithFormat:@"RCCViewController with title: %@", self.title];
     }
+  }
     
     return interactionName;
 }
