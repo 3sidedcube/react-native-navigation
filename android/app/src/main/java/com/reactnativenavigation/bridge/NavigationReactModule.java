@@ -1,7 +1,9 @@
 package com.reactnativenavigation.bridge;
 
+import android.content.Intent;
 import android.support.annotation.Nullable;
 
+import android.widget.Toast;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -9,7 +11,6 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
-import com.reactnativenavigation.NavigationApplication;
 import com.reactnativenavigation.controllers.NavigationCommandsHandler;
 import com.reactnativenavigation.params.ContextualMenuParams;
 import com.reactnativenavigation.params.FabParams;
@@ -264,6 +265,19 @@ public class NavigationReactModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void launchEmailClient() {
+        Intent intent = Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, Intent.CATEGORY_APP_EMAIL);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try
+        {
+            getReactApplicationContext().startActivity(intent);
+        }
+        catch (Exception ex)
+        {
+            Toast.makeText(getReactApplicationContext(), "Could not launch an e-mail app on this device", Toast.LENGTH_LONG).show();
+        }
+    }
+
     public void isAppLaunched(Promise promise) {
         NavigationCommandsHandler.isAppLaunched(promise);
     }

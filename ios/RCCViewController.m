@@ -127,8 +127,6 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
   return modifiedPassProps;
 }
 
-
-
 - (instancetype)initWithProps:(NSDictionary *)props children:(NSArray *)children globalProps:(NSDictionary *)globalProps bridge:(RCTBridge *)bridge
 {
   NSString *component = props[@"component"];
@@ -173,8 +171,9 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
 
 - (void)commonInit:(RCTRootView*)reactView navigatorStyle:(NSDictionary*)navigatorStyle props:(NSDictionary*)props
 {
-  self.view = reactView;
-  
+  self.rootView = reactView;
+  [self.view addSubview:reactView];
+    
   self.edgesForExtendedLayout = UIRectEdgeNone; // default
   self.automaticallyAdjustsScrollViewInsets = NO; // default
   
@@ -211,18 +210,27 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
 
 -(void)onCancelReactTouches
 {
-  if ([self.view isKindOfClass:[RCTRootView class]]){
-    [(RCTRootView*)self.view cancelTouches];
+    RCTRootView *rootView;
+    if ([self.view isKindOfClass:[RCTRootView class]]){
+        rootView = (RCTRootView *)self.view;
+    } else {
+        rootView = self.rootView;
+    }
+  if (rootView){
+      [rootView cancelTouches];
   }
 }
 
 - (void)sendScreenChangedEvent:(NSString *)eventName
 {
-  if ([self.view isKindOfClass:[RCTRootView class]]){
+    RCTRootView *rootView;
+    if ([self.view isKindOfClass:[RCTRootView class]]){
+        rootView = (RCTRootView *)self.view;
+    } else {
+        rootView = self.rootView;
+    }
     
-    RCTRootView *rootView = (RCTRootView *)self.view;
-    
-    if (rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
+    if (rootView && rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
       
       [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:rootView.appProperties[@"navigatorEventID"] body:@
        {
@@ -230,15 +238,21 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
          @"id": eventName
        }];
     }
-  }
 }
 
 - (void)sendGlobalScreenEvent:(NSString *)eventName endTimestampString:(NSString *)endTimestampStr shouldReset:(BOOL)shouldReset {
   
   if (!self.commandType) return;
+    
+    RCTRootView *rootView;
+    if ([self.view isKindOfClass:[RCTRootView class]]){
+        rootView = (RCTRootView *)self.view;
+    } else {
+        rootView = self.rootView;
+    }
   
-  if ([self.view isKindOfClass:[RCTRootView class]]){
-    NSString *screenName = [((RCTRootView*)self.view) moduleName];
+  if (rootView){
+    NSString *screenName = [rootView moduleName];
     
     [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:eventName body:@
      {
@@ -296,7 +310,6 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
   [super viewDidAppear:animated];
   [self sendGlobalScreenEvent:@"didAppear" endTimestampString:[self getTimestampString] shouldReset:YES];
   [self sendScreenChangedEvent:@"didAppear"];
-  
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -323,6 +336,12 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
   [self setStyleOnDisappear];
 }
 
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    self.rootView.frame = self.view.bounds;
+}
+
 // most styles should be set here since when we pop a view controller that changed them
 // we want to reset the style to what we expect (so we need to reset on every willAppear)
 - (void)setStyleOnAppear
@@ -343,6 +362,9 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
     
     UIColor *color = screenBackgroundColor != (id)[NSNull null] ? [RCTConvert UIColor:screenBackgroundColor] : nil;
     viewController.view.backgroundColor = color;
+      if ([viewController isKindOfClass:[RCCViewController class]]) {
+          ((RCCViewController *)viewController).rootView.backgroundColor = viewController.view.backgroundColor;
+      }
   }
   
   NSString *screenBackgroundImageName = self.navigatorStyle[@"screenBackgroundImageName"];
@@ -636,9 +658,17 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
   
   NSString *navBarCustomView = self.navigatorStyle[@"navBarCustomView"];
   if (navBarCustomView && ![self.navigationItem.titleView isKindOfClass:[RCCCustomTitleView class]]) {
-    if ([self.view isKindOfClass:[RCTRootView class]]) {
       
-      RCTBridge *bridge = ((RCTRootView*)self.view).bridge;
+      RCTRootView *rootView;
+      if ([self.view isKindOfClass:[RCTRootView class]]){
+          rootView = (RCTRootView *)self.view;
+      } else {
+          rootView = self.rootView;
+      }
+      
+    if (rootView) {
+      
+      RCTBridge *bridge = rootView.bridge;
       
       NSDictionary *initialProps = self.navigatorStyle[@"navBarCustomViewInitialProps"];
       RCTRootView *reactView = [[RCTRootView alloc] initWithBridge:bridge moduleName:navBarCustomView initialProperties:initialProps];
@@ -812,7 +842,7 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
         UIViewController *viewController = (UIViewController*)obj;
         [self addChildViewController:viewController];
         viewController.view.frame = self.view.bounds;
-        [self.view addSubview:viewController.view];
+        [self.rootView addSubview:viewController.view];
         [viewController didMoveToParentViewController:self];
       }
       else
@@ -830,17 +860,22 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
 #pragma mark - Preview Actions
 
 - (void)onActionPress:(NSString *)id {
-  if ([self.view isKindOfClass:[RCTRootView class]]) {
-    RCTRootView *rootView = (RCTRootView *)self.view;
-    if (rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
-      [[[RCCManager sharedInstance] getBridge].eventDispatcher
+    
+    RCTRootView *rootView;
+    if ([self.view isKindOfClass:[RCTRootView class]]){
+        rootView = (RCTRootView *)self.view;
+    } else {
+        rootView = self.rootView;
+    }
+    
+  if (rootView && rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
+        [[[RCCManager sharedInstance] getBridge].eventDispatcher
        sendAppEventWithName:rootView.appProperties[@"navigatorEventID"]
        body:@{
               @"type": @"PreviewActionPress",
               @"id": id
               }];
     }
-  }
 }
 
 - (UIPreviewAction *) convertAction:(NSDictionary *)action {
@@ -864,9 +899,16 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
 {
   NSString *interactionName = nil;
   
-  if (self.view != nil && [self.view isKindOfClass:[RCTRootView class]])
+    RCTRootView *rootView;
+    if ([self.view isKindOfClass:[RCTRootView class]]){
+        rootView = (RCTRootView *)self.view;
+    } else {
+        rootView = self.rootView;
+    }
+    
+  if (rootView)
   {
-    NSString *moduleName = ((RCTRootView*)self.view).moduleName;
+    NSString *moduleName = rootView.moduleName;
     if(moduleName != nil)
     {
       interactionName = [NSString stringWithFormat:@"RCCViewController: %@", moduleName];

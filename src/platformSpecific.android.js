@@ -107,7 +107,7 @@ function savePassProps(params) {
         tab.passProps = params.passProps;
       }
       savePassProps(tab);
-      
+
       if (tab.screens) {
         _.forEach(tab.screens, savePassProps);
       }
@@ -182,6 +182,10 @@ function dismissContextualMenu(screenInstanceID) {
   NativeReactModule.dismissContextualMenu(screenInstanceID);
 }
 
+function launchEmailClient() {
+  NativeReactModule.launchEmailClient();
+}
+
 function setScreenStyle(screenInstanceId, style) {
   NativeReactModule.setScreenStyle(screenInstanceId, style);
 }
@@ -235,6 +239,7 @@ module.exports = {
   dismissSnackbar,
   showContextualMenu,
   dismissContextualMenu,
+  launchEmailClient,
   setScreenStyle,
   isAppLaunched,
   isRootLaunched,

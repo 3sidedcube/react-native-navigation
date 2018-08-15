@@ -8,6 +8,7 @@
 #define COMMAND_TYPE_BOTTOME_TAB_SELECTED       @"BottomTabSelected"
 #define COMMAND_TYPE_INITIAL_SCREEN             @"InitialScreen"
 
+@class RCTRootView;
 
 extern NSString* const RCCViewControllerCancelReactTouchesNotification;
 
@@ -23,6 +24,7 @@ extern NSString* const RCCViewControllerCancelReactTouchesNotification;
 @property (nonatomic) NSArray *previewActions;
 @property (nonatomic) BOOL previewCommit;
 @property (nonatomic) id previewContext;
+@property (nonatomic, strong) RCTRootView *rootView;
 
 + (UIViewController*)controllerWithLayout:(NSDictionary *)layout globalProps:(NSDictionary *)globalProps bridge:(RCTBridge *)bridge;
 

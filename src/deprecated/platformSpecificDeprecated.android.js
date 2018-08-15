@@ -384,14 +384,21 @@ function navigatorSetButtons(navigator, navigatorEventID, _params) {
           icon = iconSource.uri;
         }
       }
-      if (button.buttonColor) {
-        button.color = processColor(button.buttonColor);
-      }
+
+      let passProps;
       if (button.component) {
         const passPropsKey = _.uniqueId('customButtonComponent');
         PropRegistry.save(passPropsKey, button.passProps);
-        button.passProps = {passPropsKey};
+        passProps = {passPropsKey};
       }
+
+      return {
+        ...button,
+        color: button.buttonColor ? processColor(button.buttonColor) : undefined,
+        enabled: !button.disabled,
+        icon: icon,
+        passProps: passProps
+      };
     });
   }
   let leftButton = getLeftButton(params);
@@ -598,14 +605,21 @@ function addNavigatorButtons(screen, sideMenuParams) {
           icon = iconSource.uri;
         }
       }
-      if (button.buttonColor) {
-        button.color = processColor(button.buttonColor);
-      }
+
+      let passProps;
       if (button.component) {
         const passPropsKey = _.uniqueId('customButtonComponent');
         PropRegistry.save(passPropsKey, button.passProps);
-        button.passProps = {passPropsKey};
+        passProps = {passPropsKey};
       }
+
+      return {
+        ...button,
+        color: button.buttonColor ? processColor(button.buttonColor) : undefined,
+        enabled: !button.disabled,
+        icon: icon,
+        passProps: passProps
+      };
     });
   }
 
@@ -795,6 +809,10 @@ function dismissContextualMenu() {
   newPlatformSpecific.dismissContextualMenu();
 }
 
+function launchEmailClient() {
+  newPlatformSpecific.launchEmailClient();
+}
+
 async function isAppLaunched() {
   return await newPlatformSpecific.isAppLaunched();
 }
@@ -841,6 +859,7 @@ export default {
   dismissSnackbar,
   showContextualMenu,
   dismissContextualMenu,
+  launchEmailClient,
   isAppLaunched,
   isRootLaunched,
   getCurrentlyVisibleScreenId,

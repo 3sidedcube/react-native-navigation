@@ -373,7 +373,7 @@ public class NavigationCommandsHandler {
     }
 
     public static void setBottomTabBadgeByIndex(final Integer index, final String badge) {
-        final NavigationActivity currentActivity = NavigationActivity.currentActivity;
+        final NavigationActivity currentActivity = NavigationActivity.backgroundActivity;
         if (currentActivity == null) {
             return;
         }
@@ -387,7 +387,7 @@ public class NavigationCommandsHandler {
     }
 
     public static void setBottomTabBadgeByNavigatorId(final String navigatorId, final String badge) {
-        final NavigationActivity currentActivity = NavigationActivity.currentActivity;
+        final NavigationActivity currentActivity = NavigationActivity.backgroundActivity;
         if (currentActivity == null) {
             return;
         }

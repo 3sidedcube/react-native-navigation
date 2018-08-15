@@ -170,6 +170,10 @@ function handleDeepLink(params = {}) {
   }
 }
 
+function launchEmailClient() {
+  return platformSpecific.launchEmailClient();
+}
+
 async function isAppLaunched() {
   return await platformSpecific.isAppLaunched();
 }
@@ -203,6 +207,7 @@ export default {
   setEventHandler: setEventHandler,
   clearEventHandler: clearEventHandler,
   handleDeepLink: handleDeepLink,
+  launchEmailClient: launchEmailClient,
   isAppLaunched: isAppLaunched,
   isRootLaunched: isRootLaunched,
   getLaunchArgs

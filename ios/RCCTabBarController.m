@@ -388,8 +388,15 @@
 }
 
 +(void)sendTabEvent:(NSString *)event controller:(UIViewController*)viewController body:(NSDictionary*)body{
+  
+  RCTRootView *rootView;
   if ([viewController.view isKindOfClass:[RCTRootView class]]){
-    RCTRootView *rootView = (RCTRootView *)viewController.view;
+    rootView = (RCTRootView *)viewController.view;
+  } else if ([viewController isKindOfClass:[RCCViewController class]]) {
+    rootView = ((RCCViewController *)viewController).rootView;
+  }
+  
+  if (rootView){
     
     if (rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
       NSString *navigatorID = rootView.appProperties[@"navigatorID"];
