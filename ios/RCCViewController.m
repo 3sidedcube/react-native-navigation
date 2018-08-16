@@ -596,8 +596,8 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
     UIView* backgroundView = [self.navigationController.navigationBar valueForKey:@"backgroundView"];
     CGFloat originalAlpha = backgroundView.alpha;
     backgroundView.alpha = navBarTransparentBool ? 0.0 : 1.0;
+    action();
     [self.transitionCoordinator animateAlongsideTransition:nil completion:^(id<UIViewControllerTransitionCoordinatorContext>  _Nonnull context) {
-      action();
       backgroundView.alpha = originalAlpha;
     }];
   }
