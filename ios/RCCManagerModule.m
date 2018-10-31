@@ -189,7 +189,15 @@ RCT_EXPORT_MODULE(RCCManager);
                                }
                                else if (counter == allPresentedViewControllers.count && allPresentedViewControllers.count > 0)
                                {
-                                   [allPresentedViewControllers removeAllObjects];
+                                   dispatch_async(dispatch_get_main_queue(), ^{
+                                       // Unregister here because some are missed above!
+                                       for (UIViewController *viewController in allPresentedViewControllers) {
+                                           if ([viewController isKindOfClass:[UIViewController class]] && (rootViewController != viewController)) {
+                                               [[RCCManager sharedIntance] unregisterController:viewController];
+                                           }
+                                       }
+                                       [allPresentedViewControllers removeAllObjects];
+                                   });
                                    
                                    if (resolve != nil)
                                    {
